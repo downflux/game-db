@@ -56,11 +56,25 @@ func (a *A) Velocity() vector.V { return a.velocity.V() }
 func (a *A) Radius() float64    { return a.radius }
 func (a *A) Heading() polar.V   { return a.heading.V() }
 
+func IsSquishableColliding(a *A, b *A) bool {
+	if a.id == b.id {
+		return false
+	}
+
+	if IsColliding(a, b) {
+		// TODO(minkezhang): Check for team.
+		if a.mask|mask.SizeCheck > b.mask|mask.SizeCheck {
+			return false
+		}
+	}
+	return true
+}
+
 // IsColliding checks if two agents are actually physically overlapping. This
 // does not care about the extra logic for e.g. squishing.
 func IsColliding(a *A, b *A) bool {
 	if a.id == b.id {
-		return true
+		return false
 	}
 
 	r := a.Radius() + b.Radius()
