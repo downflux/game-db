@@ -26,12 +26,6 @@ type O struct {
 	MaxAngularAcceleration float64
 
 	Mask mask.M
-
-	// CElasticity is a number in the closed interval [0, 1] which
-	// represents how elastic a collision will be. A coefficient of 0 means
-	// the collision will be completely inelastic. See
-	// https://www.youtube.com/watch?v=1L2g4ZqmFLQ for more information.
-	CElasticity float64
 }
 
 type A struct {
@@ -53,8 +47,6 @@ type A struct {
 	maxAngularAcceleration float64
 
 	mask mask.M
-
-	cElasticity float64
 }
 
 func (a *A) ID() id.ID { return a.id }
@@ -108,8 +100,6 @@ func New(o O) *A {
 		maxAngularVelocity:     o.MaxAngularVelocity,
 		maxAcceleration:        o.MaxAcceleration,
 		maxAngularAcceleration: o.MaxAngularAcceleration,
-
-		cElasticity: o.CElasticity,
 	}
 	return a
 }
