@@ -10,6 +10,7 @@ const (
 	MSizeProjectile = 1 << iota
 	MSizeSmall
 	MSizeMedium
+	MSizeLarge
 
 	// MTerrainAccessibleAir defines the agent can fly.
 	MTerrainAccessibleAir
@@ -31,11 +32,24 @@ const (
 	TerrainLandCheck = MTerrainAccessibleLand | MTerrainLand
 	TerrainSeaCheck  = MTerrainAccessibleSea | MTerrainSea
 
-	SizeCheck = MSizeProjectile | MSizeSmall | MSizeMedium
+	SizeCheck = MSizeProjectile | MSizeSmall | MSizeMedium | MSizeLarge
 )
 
 func Validate(m M) bool {
-	if t := m & SizeCheck; t != MSizeProjectile || t != MSizeSmall || t != MSizeMedium {
+	n := 0
+	if m&MSizeProjectile != 0 {
+		n++
+	}
+	if m&MSizeSmall != 0 {
+		n++
+	}
+	if m&MSizeMedium != 0 {
+		n++
+	}
+	if m&MSizeLarge != 0 {
+		n++
+	}
+	if n > 1 {
 		return false
 	}
 
