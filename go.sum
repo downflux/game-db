@@ -1,3 +1,5 @@
+github.com/downflux/go-bvh v0.2.1 h1:0GUUBp3b2yrdOdXffHjMS2qh/MytwMNViFzSH3A5PUg=
+github.com/downflux/go-bvh v0.2.1/go.mod h1:A4IdDdYkX7zy0STS7KvNMGgQTpMOT3/aSJh8MkM4GLc=
 github.com/downflux/go-geometry v0.15.0 h1:rgx7x/t2Yo9OqhjSONhFS74QQlx/UQouEb4qmmPxM2w=
 github.com/downflux/go-geometry v0.15.0/go.mod h1:ZJcto0QwYRdoIbi5G4mh5y6v2xUS+d++/cANaO1F9+8=
 github.com/downflux/go-geometry v0.15.1 h1:gexcnPgdPWH6cRoD44mGcRIWzQgwHHTq1bCVRE97Iyw=

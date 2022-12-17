@@ -2,6 +2,7 @@ package agent
 
 import (
 	"github.com/downflux/game-db/agent/mask"
+	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 )
@@ -21,6 +22,8 @@ type O struct {
 }
 
 type A struct {
+	id id.ID
+
 	position vector.M
 	velocity vector.M
 	radius   float64
@@ -61,6 +64,8 @@ func New(o O) *A {
 	return a
 }
 
+func (a *A) ID() id.ID { return a.id }
+
 func (a *A) SetMaxVelocity(c float64)            { a.maxVelocity = c }
 func (a *A) SetMaxAngularVelocity(c float64)     { a.maxAngularVelocity = c }
 func (a *A) SetMaxAcceleration(c float64)        { a.maxAcceleration = c }
@@ -92,3 +97,7 @@ func IgnoreCollision(a *A, b *A) bool {
 	}
 	return false
 }
+
+// SetID is only called by internal libraries. This function must not be invoked
+// by external users.
+func SetID(a *A, x id.ID) { a.id = x }
