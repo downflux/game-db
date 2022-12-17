@@ -56,6 +56,8 @@ func (a *A) Velocity() vector.V { return a.velocity.V() }
 func (a *A) Radius() float64    { return a.radius }
 func (a *A) Heading() polar.V   { return a.heading.V() }
 
+func (a *A) IsProjectile() bool { return a.mask&mask.MSizeProjectile != 0 }
+
 func IsSquishableColliding(a *A, b *A) bool {
 	if a.id == b.id {
 		return false
@@ -116,6 +118,8 @@ func New(o O) *A {
 		maxAngularVelocity:     o.MaxAngularVelocity,
 		maxAcceleration:        o.MaxAcceleration,
 		maxAngularAcceleration: o.MaxAngularAcceleration,
+
+		mask: o.Mask,
 	}
 	return a
 }

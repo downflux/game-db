@@ -33,8 +33,6 @@ type O struct {
 type DB struct {
 	agents map[id.ID]*agent.A
 
-	aabbCache map[id.ID]hyperrectangle.M
-
 	bvh *bvh.T
 
 	poolSize int
@@ -43,8 +41,7 @@ type DB struct {
 
 func New(o O) *DB {
 	return &DB{
-		agents:    make(map[id.ID]*agent.A, 1024),
-		aabbCache: make(map[id.ID]hyperrectangle.M, 1024),
+		agents: make(map[id.ID]*agent.A, 1024),
 		bvh: bvh.New(bvh.O{
 			K:         2,
 			LeafSize:  o.LeafSize,
@@ -55,9 +52,12 @@ func New(o O) *DB {
 }
 
 func (db *DB) Delete(x id.ID) {
+	a := db.agents[x]
 	delete(db.agents, x)
-	if err := db.bvh.Remove(x); err != nil {
-		panic(fmt.Sprintf("cannot delete agent: %v", err))
+	if !a.IsProjectile() {
+		if err := db.bvh.Remove(x); err != nil {
+			panic(fmt.Sprintf("cannot delete agent: %v", err))
+		}
 	}
 }
 
@@ -70,8 +70,10 @@ func (db *DB) Insert(o agent.O) *agent.A {
 
 	db.agents[x] = a
 
-	if err := db.bvh.Insert(x, agent.AABB(a.Position(), a.Radius())); err != nil {
-		panic(fmt.Sprintf("cannot insert agent: %v", err))
+	if !a.IsProjectile() {
+		if err := db.bvh.Insert(x, agent.AABB(a.Position(), a.Radius())); err != nil {
+			panic(fmt.Sprintf("cannot insert agent: %v", err))
+		}
 	}
 
 	return a
@@ -153,6 +155,8 @@ func (db *DB) Tick(d time.Duration) {
 	wg.Wait()
 
 	for x, a := range db.agents {
-		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
+		if !a.IsProjectile() {
+			db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
+		}
 	}
 }

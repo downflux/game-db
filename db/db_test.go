@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/downflux/game-db/agent"
+	"github.com/downflux/game-db/agent/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 )
@@ -34,6 +35,7 @@ func BenchmarkGenerateVelocity(b *testing.B) {
 			Position: rv(Min, Max),
 			Velocity: rv(-1, 1),
 			Heading:  polar.V{1, 0},
+			Mask:     mask.MSizeSmall,
 		})
 	}
 
@@ -52,6 +54,7 @@ func BenchmarkTick(b *testing.B) {
 			Position: rv(Min, Max),
 			Velocity: rv(-1, 1),
 			Heading:  polar.V{1, 0},
+			Mask:     mask.MSizeSmall,
 		})
 	}
 
