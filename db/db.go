@@ -13,9 +13,13 @@ import (
 )
 
 var (
+	// DefaultO provides a default set of options for setting up the
+	// database. The values here are tailored to an N = 1000 simulation, and
+	// is dependent on a variety of factors, e.g. CPU count and surface area
+	// coverage.
 	DefaultO O = O{
 		LeafSize:  8,
-		Tolerance: 2.0,
+		Tolerance: 1.1,
 		PoolSize:  8,
 	}
 )
@@ -102,7 +106,7 @@ func (db *DB) generateVelocity() {
 	}()
 
 	var wg sync.WaitGroup
-	go func() {
+	for i := 0; i < db.poolSize; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -119,13 +123,14 @@ func (db *DB) generateVelocity() {
 				}
 			}
 		}()
-	}()
+	}
+	wg.Wait()
 }
 
 func (db *DB) Tick(d time.Duration) {
 	db.generateVelocity()
 
-	t := d / time.Second
+	t := float64(d) / float64(time.Second)
 
 	ch := make(chan *agent.A, 256)
 	go func() {
@@ -136,13 +141,18 @@ func (db *DB) Tick(d time.Duration) {
 	}()
 
 	var wg sync.WaitGroup
-	go func() {
+	for i := 0; i < db.poolSize; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for a := range ch {
-				a.Position().M().Add(vector.Scale(float64(t), a.Velocity()))
+				a.Position().M().Add(vector.Scale(t, a.Velocity()))
 			}
 		}()
-	}()
+	}
+	wg.Wait()
+
+	for x, a := range db.agents {
+		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
+	}
 }
