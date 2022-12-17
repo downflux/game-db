@@ -56,6 +56,8 @@ func (a *A) Velocity() vector.V { return a.velocity.V() }
 func (a *A) Radius() float64    { return a.radius }
 func (a *A) Heading() polar.V   { return a.heading.V() }
 
+// IsColliding checks if two agents are actually physically overlapping. This
+// does not care about the extra logic for e.g. squishing.
 func IsColliding(a *A, b *A) bool {
 	if a.id == b.id {
 		return true
@@ -104,32 +106,16 @@ func New(o O) *A {
 	return a
 }
 
-func SetLeafAABB(a *A, q hyperrectangle.M) {
-	r := a.Radius()
-	x, y := a.Position().X(), a.Position().Y()
-	q.Min().SetX(vnd.AXIS_X, x-r)
-	q.Min().SetX(vnd.AXIS_Y, y-r)
-	q.Max().SetX(vnd.AXIS_X, x+r)
-	q.Max().SetX(vnd.AXIS_Y, y+r)
-}
-
-func LeafAABB(a *A) hyperrectangle.R {
-	buf := hyperrectangle.New(vnd.V{0, 0}, vnd.V{0, 0}).M()
-	SetLeafAABB(a, buf)
-	return buf.R()
-}
-
-func SetBroadPhaseAABB(a *A, q hyperrectangle.M) {
-	r := 3 * a.Radius()
-	x, y := a.Position().X(), a.Position().Y()
-	q.Min().SetX(vnd.AXIS_X, x-r)
-	q.Min().SetX(vnd.AXIS_Y, y-r)
-	q.Max().SetX(vnd.AXIS_X, x+r)
-	q.Max().SetX(vnd.AXIS_Y, y+r)
-}
-
-func BroadPhaseAABB(a *A) hyperrectangle.R {
-	buf := hyperrectangle.New(vnd.V{0, 0}, vnd.V{0, 0}).M()
-	SetBroadPhaseAABB(a, buf)
-	return buf.R()
+func AABB(p vector.V, r float64) hyperrectangle.R {
+	x, y := p.X(), p.Y()
+	return *hyperrectangle.New(
+		vnd.V{
+			x - r,
+			y - r,
+		},
+		vnd.V{
+			x + r,
+			y + r,
+		},
+	)
 }

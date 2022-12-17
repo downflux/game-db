@@ -66,7 +66,7 @@ func (db *DB) Insert(o agent.O) *agent.A {
 
 	db.agents[x] = a
 
-	if err := db.bvh.Insert(x, agent.LeafAABB(db.agents[x])); err != nil {
+	if err := db.bvh.Insert(x, agent.AABB(a.Position(), a.Radius())); err != nil {
 		panic(fmt.Sprintf("cannot insert agent: %v", err))
 	}
 
@@ -74,10 +74,10 @@ func (db *DB) Insert(o agent.O) *agent.A {
 }
 
 // Neighbors returns a list of neighboring agents to the input.
-func (db *DB) Neighbors(x id.ID, filter func(a, b *agent.A) bool) []id.ID {
+func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
 	a := db.agents[x]
 
-	broadphase := db.bvh.BroadPhase(agent.BroadPhaseAABB(db.agents[x]))
+	broadphase := db.bvh.BroadPhase(q)
 
 	collisions := make([]id.ID, 0, len(broadphase))
 	for _, y := range broadphase {
@@ -92,7 +92,7 @@ func (db *DB) Neighbors(x id.ID, filter func(a, b *agent.A) bool) []id.ID {
 func (db *DB) SetPosition(x id.ID, v vector.V) { db.agents[x].Position().M().Copy(v) }
 func (db *DB) SetVelocity(x id.ID, v vector.V) { db.agents[x].Velocity().M().Copy(v) }
 
-func (db *DB) calculateVelocity() {
+func (db *DB) generateVelocity() {
 	ch := make(chan *agent.A, 256)
 	go func() {
 		for _, a := range db.agents {
@@ -107,7 +107,8 @@ func (db *DB) calculateVelocity() {
 		go func() {
 			defer wg.Done()
 			for a := range ch {
-				for _, y := range db.Neighbors(a.ID(), agents.IsColliding) {
+				r := 2 * a.Radius()
+				for _, y := range db.Neighbors(a.ID(), agent.AABB(a.Position(), r), agent.IsColliding) {
 					b := db.agents[y]
 
 					// TODO(minkezhang): Calculate new
@@ -122,7 +123,7 @@ func (db *DB) calculateVelocity() {
 }
 
 func (db *DB) Tick(d time.Duration) {
-	db.calculateVelocity()
+	db.generateVelocity()
 
 	t := d / time.Second
 
