@@ -20,10 +20,10 @@ type A struct {
 	mask mask.M
 }
 
-func (a *A) Position() vector.V   { return a.position.V() }
-func (a *A) Velocity() vector.V   { return a.velocity.V() }
-func (a *A) Radius() float64      { return a.radius }
-func (a *A) Orientation() float64 { return a.orientation }
+func (a *A) Position() vector.V { return a.position.V() }
+func (a *A) Velocity() vector.V { return a.velocity.V() }
+func (a *A) Radius() float64    { return a.radius }
+func (a *A) Theta() float64     { return a.theta }
 
 // IgnoreCollision checks if two agents need to do any additional processing in
 // the case that their bounding circles overlap.
