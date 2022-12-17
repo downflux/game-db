@@ -5,13 +5,20 @@ import (
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
+
+	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
+// O is an agent constructor option struct. All numbers are in SI units, e.g.
+// meters, seconds, etc.
 type O struct {
 	Position vector.V
 	Velocity vector.V
-	Radius   float64
-	Heading  polar.V
+
+	// Radius is a non-negative number representing the size of the agent.
+	Radius  float64
+	Heading polar.V
 
 	MaxVelocity            float64
 	MaxAngularVelocity     float64
@@ -19,6 +26,12 @@ type O struct {
 	MaxAngularAcceleration float64
 
 	Mask mask.M
+
+	// CElasticity is a number in the closed interval [0, 1] which
+	// represents how elastic a collision will be. A coefficient of 0 means
+	// the collision will be completely inelastic. See
+	// https://www.youtube.com/watch?v=1L2g4ZqmFLQ for more information.
+	CElasticity float64
 }
 
 type A struct {
@@ -40,8 +53,43 @@ type A struct {
 	maxAngularAcceleration float64
 
 	mask mask.M
+
+	cElasticity float64
 }
 
+func (a *A) ID() id.ID { return a.id }
+
+func (a *A) Position() vector.V { return a.position.V() }
+func (a *A) Velocity() vector.V { return a.velocity.V() }
+func (a *A) Radius() float64    { return a.radius }
+func (a *A) Heading() polar.V   { return a.heading.V() }
+
+func IsColliding(a *A, b *A) bool {
+	if a.id == b.id {
+		return true
+	}
+
+	r := a.Radius() + b.Radius()
+	if vector.SquaredMagnitude(vector.Sub(a.Position(), b.Position())) > r*r {
+		return false
+	}
+
+	if a.mask|b.mask&mask.MSizeProjectile != 0 {
+		return false
+	}
+
+	// Agents are able to overlap if (only) one of them is in the air.
+	if a.mask^b.mask&mask.MTerrainAir == mask.MTerrainAir {
+		return false
+	}
+	return true
+}
+
+// SetID is only called by internal libraries. This function must not be invoked
+// by external users.
+func SetID(a *A, x id.ID) { a.id = x }
+
+// New is only called by internal libraries.
 func New(o O) *A {
 	p := vector.V([]float64{0, 0}).M()
 	p.Copy(o.Position)
@@ -60,44 +108,38 @@ func New(o O) *A {
 		maxAngularVelocity:     o.MaxAngularVelocity,
 		maxAcceleration:        o.MaxAcceleration,
 		maxAngularAcceleration: o.MaxAngularAcceleration,
+
+		cElasticity: o.CElasticity,
 	}
 	return a
 }
 
-func (a *A) ID() id.ID { return a.id }
-
-func (a *A) SetMaxVelocity(c float64)            { a.maxVelocity = c }
-func (a *A) SetMaxAngularVelocity(c float64)     { a.maxAngularVelocity = c }
-func (a *A) SetMaxAcceleration(c float64)        { a.maxAcceleration = c }
-func (a *A) SetMaxAngularAcceleration(c float64) { a.maxAngularAcceleration = c }
-
-func (a *A) Position() vector.V { return a.position.V() }
-func (a *A) Velocity() vector.V { return a.velocity.V() }
-func (a *A) Radius() float64    { return a.radius }
-func (a *A) Heading() polar.V   { return a.heading.V() }
-
-// SetPosition and associated mutation functions are used by external API to set
-// these values directly. Internally, we will leverage the mutability criteria
-// of these values to incrementally update the agent.
-func (a *A) SetPosition(v vector.V) { a.position.Copy(v) }
-func (a *A) SetVelocity(v vector.V) { a.velocity.Copy(v) }
-func (a *A) SetRadius(c float64)    { a.radius = c }
-func (a *A) SetHeading(v polar.V)   { a.heading.Copy(v) }
-
-// IgnoreCollision checks if two agents need to do any additional processing in
-// the case that their bounding circles overlap.
-func IgnoreCollision(a *A, b *A) bool {
-	if a.mask|b.mask&mask.MSizeProjectile != 0 {
-		return true
-	}
-
-	// Agents are able to overlap if (only) one of them is in the air.
-	if a.mask^b.mask&mask.MTerrainAir == mask.MTerrainAir {
-		return true
-	}
-	return false
+func SetLeafAABB(a *A, q hyperrectangle.M) {
+	r := a.Radius()
+	x, y := a.Position().X(), a.Position().Y()
+	q.Min().SetX(vnd.AXIS_X, x-r)
+	q.Min().SetX(vnd.AXIS_Y, y-r)
+	q.Max().SetX(vnd.AXIS_X, x+r)
+	q.Max().SetX(vnd.AXIS_Y, y+r)
 }
 
-// SetID is only called by internal libraries. This function must not be invoked
-// by external users.
-func SetID(a *A, x id.ID) { a.id = x }
+func LeafAABB(a *A) hyperrectangle.R {
+	buf := hyperrectangle.New(vnd.V{0, 0}, vnd.V{0, 0}).M()
+	SetLeafAABB(a, buf)
+	return buf.R()
+}
+
+func SetBroadPhaseAABB(a *A, q hyperrectangle.M) {
+	r := 3 * a.Radius()
+	x, y := a.Position().X(), a.Position().Y()
+	q.Min().SetX(vnd.AXIS_X, x-r)
+	q.Min().SetX(vnd.AXIS_Y, y-r)
+	q.Max().SetX(vnd.AXIS_X, x+r)
+	q.Max().SetX(vnd.AXIS_Y, y+r)
+}
+
+func BroadPhaseAABB(a *A) hyperrectangle.R {
+	buf := hyperrectangle.New(vnd.V{0, 0}, vnd.V{0, 0}).M()
+	SetBroadPhaseAABB(a, buf)
+	return buf.R()
+}
