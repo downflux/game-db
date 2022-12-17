@@ -61,13 +61,22 @@ func New(o O) *A {
 	return a
 }
 
-func (a *A) Position() vector.V     { return a.position.V() }
+func (a *A) SetMaxVelocity(c float64)            { a.maxVelocity = c }
+func (a *A) SetMaxAngularVelocity(c float64)     { a.maxAngularVelocity = c }
+func (a *A) SetMaxAcceleration(c float64)        { a.maxAcceleration = c }
+func (a *A) SetMaxAngularAcceleration(c float64) { a.maxAngularAcceleration = c }
+
+func (a *A) Position() vector.V { return a.position.V() }
+func (a *A) Velocity() vector.V { return a.velocity.V() }
+func (a *A) Radius() float64    { return a.radius }
+func (a *A) Heading() polar.V   { return a.heading.V() }
+
+// SetPosition and associated mutation functions are used by external API to set
+// these values directly. Internally, we will leverage the mutability criteria
+// of these values to incrementally update the agent.
 func (a *A) SetPosition(v vector.V) { a.position.Copy(v) }
-func (a *A) Velocity() vector.V     { return a.velocity.V() }
 func (a *A) SetVelocity(v vector.V) { a.velocity.Copy(v) }
-func (a *A) Radius() float64        { return a.radius }
 func (a *A) SetRadius(c float64)    { a.radius = c }
-func (a *A) Heading() polar.V       { return a.heading.V() }
 func (a *A) SetHeading(v polar.V)   { a.heading.Copy(v) }
 
 // IgnoreCollision checks if two agents need to do any additional processing in
