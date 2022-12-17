@@ -108,7 +108,7 @@ func (db *DB) generateVelocity() {
 			defer wg.Done()
 			for a := range ch {
 				r := 2 * a.Radius()
-				for _, y := range db.Neighbors(a.ID(), agent.AABB(a.Position(), r), agent.IsColliding) {
+				for _, y := range db.Neighbors(a.ID(), agent.AABB(a.Position(), r), agent.IsSquishableColliding) {
 					b := db.agents[y]
 
 					// TODO(minkezhang): Calculate new
