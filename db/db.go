@@ -31,7 +31,8 @@ type O struct {
 }
 
 type DB struct {
-	agents map[id.ID]*agent.A
+	agents      map[id.ID]*agent.A
+	projectiles map[id.ID]*agent.A
 
 	bvh *bvh.T
 
@@ -41,7 +42,8 @@ type DB struct {
 
 func New(o O) *DB {
 	return &DB{
-		agents: make(map[id.ID]*agent.A, 1024),
+		agents:      make(map[id.ID]*agent.A, 1024),
+		projectiles: make(map[id.ID]*agent.A, 1024),
 		bvh: bvh.New(bvh.O{
 			K:         2,
 			LeafSize:  o.LeafSize,
@@ -52,9 +54,15 @@ func New(o O) *DB {
 }
 
 func (db *DB) Delete(x id.ID) {
-	a := db.agents[x]
-	delete(db.agents, x)
-	if !a.IsProjectile() {
+	a, ok := db.agents[x]
+	if !ok {
+		a = db.projectiles[x]
+	}
+
+	if a.IsProjectile() {
+		delete(db.projectiles, x)
+	} else {
+		delete(db.agents, x)
 		if err := db.bvh.Remove(x); err != nil {
 			panic(fmt.Sprintf("cannot delete agent: %v", err))
 		}
@@ -68,9 +76,10 @@ func (db *DB) Insert(o agent.O) *agent.A {
 	a := agent.New(o)
 	agent.SetID(a, x)
 
-	db.agents[x] = a
-
-	if !a.IsProjectile() {
+	if a.IsProjectile() {
+		db.projectiles[x] = a
+	} else {
+		db.agents[x] = a
 		if err := db.bvh.Insert(x, agent.AABB(a.Position(), a.Radius())); err != nil {
 			panic(fmt.Sprintf("cannot insert agent: %v", err))
 		}
@@ -81,7 +90,10 @@ func (db *DB) Insert(o agent.O) *agent.A {
 
 // Neighbors returns a list of neighboring agents to the input.
 func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
-	a := db.agents[x]
+	a, ok := db.agents[x]
+	if !ok {
+		a = db.projectiles[x]
+	}
 
 	broadphase := db.bvh.BroadPhase(q)
 
@@ -102,6 +114,9 @@ func (db *DB) generateVelocity() {
 	ch := make(chan *agent.A, 256)
 	go func() {
 		for _, a := range db.agents {
+			ch <- a
+		}
+		for _, a := range db.projectiles {
 			ch <- a
 		}
 		close(ch)
@@ -139,6 +154,9 @@ func (db *DB) Tick(d time.Duration) {
 		for _, a := range db.agents {
 			ch <- a
 		}
+		for _, a := range db.projectiles {
+			ch <- a
+		}
 		close(ch)
 	}()
 
@@ -155,8 +173,6 @@ func (db *DB) Tick(d time.Duration) {
 	wg.Wait()
 
 	for x, a := range db.agents {
-		if !a.IsProjectile() {
-			db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
-		}
+		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
 	}
 }
