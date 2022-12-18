@@ -135,6 +135,10 @@ func (db *DB) generateVelocity() {
 					// TODO(minkezhang): Calculate new
 					// velocities based on elastic or
 					// inelastic collisions.
+					//
+					// TODO(minkezhang): Do not set
+					// velocities in parallel loop. Return
+					// channel instead.
 					a.Velocity().M().Copy(a.Velocity())
 					b.Velocity().M().Copy(b.Velocity())
 				}
@@ -144,6 +148,8 @@ func (db *DB) generateVelocity() {
 	wg.Wait()
 }
 
+// Tick advances the world by one tick. During this execution, agents must not
+// be modified by the user.
 func (db *DB) Tick(d time.Duration) {
 	db.generateVelocity()
 

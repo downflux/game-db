@@ -25,6 +25,8 @@ type O struct {
 	MaxAcceleration        float64
 	MaxAngularAcceleration float64
 
+	Mass float64
+
 	Mask mask.M
 }
 
@@ -46,6 +48,8 @@ type A struct {
 	maxAcceleration        float64
 	maxAngularAcceleration float64
 
+	mass float64
+
 	mask mask.M
 }
 
@@ -55,6 +59,7 @@ func (a *A) Position() vector.V { return a.position.V() }
 func (a *A) Velocity() vector.V { return a.velocity.V() }
 func (a *A) Radius() float64    { return a.radius }
 func (a *A) Heading() polar.V   { return a.heading.V() }
+func (a *A) Mass() float64      { return a.mass }
 
 func (a *A) IsProjectile() bool { return a.mask&mask.MSizeProjectile != 0 }
 
@@ -118,6 +123,8 @@ func New(o O) *A {
 		maxAngularVelocity:     o.MaxAngularVelocity,
 		maxAcceleration:        o.MaxAcceleration,
 		maxAngularAcceleration: o.MaxAngularAcceleration,
+
+		mass: o.Mass,
 
 		mask: o.Mask,
 	}
