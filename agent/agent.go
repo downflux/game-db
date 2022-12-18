@@ -144,3 +144,49 @@ func AABB(p vector.V, r float64) hyperrectangle.R {
 		},
 	)
 }
+
+// CollisionVelocity generates a velocity vector for two colliding objects by
+// setting the normal components to zero. This does not model, and does not
+// intend to model, an inelastic collision -- this is the final check we do to
+// avoid odd rendering behavior where a unit is forced into a collision.
+//
+// In the case of an inelastic collision between three objects, we can imagine a
+// small object stuck between two massive ones. The collision vector for either
+// massive object is not changed very much by the middle object, but because the
+// two massive objects are not yet colliding, they will continue moving towards
+// one another, which will force a collision with the middle object.
+//
+// The collision avoidance layer should generate velocities for each agent which
+// anticipates collisions (which itself may be modeled as a near-field inelastic
+// repulsive force) to avoid unintuitive pathing behavior.
+//
+// This function does not check if we need to generate a collision velocity in
+// the first place -- that should be done by the caller by e.g. checking for
+// radius overlap.
+//
+// To generate a final collision vector between several colliding objects, this
+// function should be called iteratively for a single object and other
+// colliders, e.g.
+//
+//	v := vector.M{0, 0}
+//	v.Copy(a.Velocity())
+//
+//	SetCollisionVector(a, b, v)
+//	SetCollisionVector(a, c, v)
+//
+// This allows us to generate a final velocity for agent a.
+func SetCollisionVelocity(a *A, b *A, v vector.M) {
+	// Find the unit collision vector pointing from a to b.
+	buf := vector.M{0, 0}
+	buf.Copy(b.Position())
+	buf.Sub(a.Position())
+	buf.Unit()
+
+	// If the vectors are pointing in the same direction, then remove the
+	// offending collision component.
+	c := vector.Dot(buf.V(), v.V())
+	if c > 0 {
+		buf.Scale(c)
+		v.Sub(buf.V())
+	}
+}
