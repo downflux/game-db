@@ -8,8 +8,12 @@ import (
 
 	"github.com/downflux/game-db/agent"
 	"github.com/downflux/game-db/agent/mask"
+	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 const (
@@ -24,6 +28,108 @@ func rv(min, max float64) vector.V {
 	return vector.V{
 		rn(min, max),
 		rn(min, max),
+	}
+}
+
+func TestNeighbors(t *testing.T) {
+	type config struct {
+		name string
+		db   *DB
+		x    id.ID
+		q    hyperrectangle.R
+		want []id.ID
+	}
+
+	configs := []config{
+		func() config {
+			db := New(DefaultO)
+			a := db.Insert(agent.O{
+				Position: vector.V{10, 10},
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			return config{
+				name: "Exclude/Self",
+				db:   db,
+				x:    a.ID(),
+				q:    agent.AABB(a.Position(), a.Radius()),
+				want: []id.ID{},
+			}
+		}(),
+		func() config {
+			db := New(DefaultO)
+			a := db.Insert(agent.O{
+				Position: vector.V{10, 10},
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+
+			b := db.Insert(agent.O{
+				Position: a.Position(),
+				Velocity: a.Velocity(),
+				Heading:  a.Heading(),
+				Radius:   a.Radius(),
+				Mask:     mask.MSizeSmall,
+			})
+			db.Insert(agent.O{
+				Position: a.Position(),
+				Velocity: a.Velocity(),
+				Heading:  a.Heading(),
+				Radius:   a.Radius(),
+				Mask:     mask.MSizeProjectile,
+			})
+			return config{
+				name: "Exclude/Projectiles",
+				db:   db,
+				x:    a.ID(),
+				q:    agent.AABB(a.Position(), a.Radius()),
+				want: []id.ID{b.ID()},
+			}
+		}(),
+		func() config {
+			db := New(DefaultO)
+			a := db.Insert(agent.O{
+				Position: vector.V{10, 10},
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeMedium,
+			})
+			b := db.Insert(agent.O{
+				Position: a.Position(),
+				Velocity: a.Velocity(),
+				Heading:  a.Heading(),
+				Radius:   a.Radius(),
+				Mask:     mask.MSizeLarge,
+			})
+			db.Insert(agent.O{
+				Position: a.Position(),
+				Velocity: a.Velocity(),
+				Heading:  a.Heading(),
+				Radius:   a.Radius(),
+				Mask:     mask.MSizeSmall,
+			})
+			return config{
+				name: "Exclude/Squishable",
+				db:   db,
+				x:    a.ID(),
+				q:    agent.AABB(a.Position(), a.Radius()),
+				want: []id.ID{b.ID()},
+			}
+		}(),
+	}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			got := c.db.neighbors(c.x, c.q, agent.IsSquishableColliding)
+			if diff := cmp.Diff(c.want, got, cmpopts.SortSlices(func(a, b id.ID) bool { return a < b })); diff != "" {
+				t.Errorf("neighbors() mismatch (-want +got):\n%v", diff)
+			}
+		})
 	}
 }
 

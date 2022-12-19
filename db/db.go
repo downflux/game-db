@@ -182,8 +182,8 @@ func (db *DB) generate(out chan<- result) {
 				v := vector.M{0, 0}
 				v.Copy(a.Velocity())
 
-				// Check for only geometric collisions, i.e.
-				// overlapping radii.
+				// Check for collisions which the agent cares
+				// about, e.g. care about squishability.
 				for _, y := range db.neighbors(
 					a.ID(),
 					agent.AABB(

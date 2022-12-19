@@ -70,11 +70,12 @@ func IsSquishableColliding(a *A, b *A) bool {
 
 	if IsColliding(a, b) {
 		// TODO(minkezhang): Check for team.
-		if a.mask|mask.SizeCheck > b.mask|mask.SizeCheck {
+		if a.mask&mask.SizeCheck > b.mask&mask.SizeCheck {
 			return false
 		}
+		return true
 	}
-	return true
+	return false
 }
 
 // IsColliding checks if two agents are actually physically overlapping. This
@@ -89,7 +90,7 @@ func IsColliding(a *A, b *A) bool {
 		return false
 	}
 
-	if a.mask|b.mask&mask.MSizeProjectile != 0 {
+	if (a.mask|b.mask)&mask.MSizeProjectile != 0 {
 		return false
 	}
 
