@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"testing"
 	"time"
@@ -145,11 +146,12 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := New(DefaultO)
 			a := db.Insert(agent.O{
-				Position: vector.V{10, 10},
-				Velocity: vector.V{1, 1},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:    vector.V{10, 10},
+				Velocity:    vector.V{1, 1},
+				MaxVelocity: math.Sqrt(2),
+				Heading:     polar.V{1, math.Pi / 4},
+				Radius:      1,
+				Mask:        mask.MSizeSmall,
 			})
 			return config{
 				name: "Trivial",
@@ -163,18 +165,20 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := New(DefaultO)
 			a := db.Insert(agent.O{
-				Position: vector.V{10, 10},
-				Velocity: vector.V{0, 1},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:    vector.V{10, 10},
+				Velocity:    vector.V{0, 1},
+				MaxVelocity: 1,
+				Heading:     polar.V{1, math.Pi / 2},
+				Radius:      1,
+				Mask:        mask.MSizeSmall,
 			})
 			b := db.Insert(agent.O{
-				Position: vector.V{10, 12},
-				Velocity: vector.V{0, -1},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:    vector.V{10, 12},
+				Velocity:    vector.V{0, -1},
+				MaxVelocity: 1,
+				Heading:     polar.V{1, -math.Pi / 2},
+				Radius:      1,
+				Mask:        mask.MSizeSmall,
 			})
 			return config{
 				name: "Collision",
@@ -189,18 +193,20 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := New(DefaultO)
 			a := db.Insert(agent.O{
-				Position: vector.V{10, 10},
-				Velocity: vector.V{0, 1},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:    vector.V{10, 10},
+				Velocity:    vector.V{0, 1},
+				MaxVelocity: 1,
+				Heading:     polar.V{1, math.Pi / 2},
+				Radius:      1,
+				Mask:        mask.MSizeSmall,
 			})
 			b := db.Insert(agent.O{
-				Position: vector.V{10, 12},
-				Velocity: vector.V{0, -1},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeProjectile,
+				Position:    vector.V{10, 12},
+				Velocity:    vector.V{0, -1},
+				MaxVelocity: 1,
+				Heading:     polar.V{1, -math.Pi / 2},
+				Radius:      1,
+				Mask:        mask.MSizeProjectile,
 			})
 			return config{
 				name: "Collision/IgnoreProjectile",

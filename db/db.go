@@ -9,6 +9,7 @@ import (
 	"github.com/downflux/go-bvh/bvh"
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-geometry/2d/vector"
+	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 )
 
@@ -229,8 +230,16 @@ func (db *DB) Tick(d time.Duration) {
 		go func() {
 			defer wg.Done()
 			for r := range out {
-				// TODO(minkezhang): Take into account rotation.
+				agent.SetVelocity(r.agent, r.v.M())
+
+				// N.B.: The velocity can be further reduced to
+				// zero here due to the physical limitations of
+				// the agent.
+				h := polar.V{1, r.agent.Heading().Theta()}
+				agent.SetHeading(r.agent, d, r.v.M(), h.M())
+
 				r.agent.Position().M().Add(vector.Scale(t, r.v))
+				r.agent.Heading().M().Copy(h)
 			}
 		}()
 	}

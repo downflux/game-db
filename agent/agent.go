@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"time"
+
 	"github.com/downflux/game-db/agent/mask"
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-geometry/2d/vector"
@@ -13,6 +15,7 @@ import (
 // O is an agent constructor option struct. All numbers are in SI units, e.g.
 // meters, seconds, etc.
 type O struct {
+	Mass     float64
 	Position vector.V
 	Velocity vector.V
 
@@ -20,12 +23,9 @@ type O struct {
 	Radius  float64
 	Heading polar.V
 
-	MaxVelocity            float64
-	MaxAngularVelocity     float64
-	MaxAcceleration        float64
-	MaxAngularAcceleration float64
-
-	Mass float64
+	MaxVelocity        float64
+	MaxAngularVelocity float64
+	MaxAcceleration    float64
 
 	Mask mask.M
 }
@@ -33,6 +33,7 @@ type O struct {
 type A struct {
 	id id.ID
 
+	mass     float64
 	position vector.M
 	velocity vector.M
 	radius   float64
@@ -43,23 +44,20 @@ type A struct {
 	// angular componet of π / 2.
 	heading polar.M
 
-	maxVelocity            float64
-	maxAngularVelocity     float64
-	maxAcceleration        float64
-	maxAngularAcceleration float64
-
-	mass float64
+	maxVelocity        float64
+	maxAngularVelocity float64
+	maxAcceleration    float64
 
 	mask mask.M
 }
 
 func (a *A) ID() id.ID { return a.id }
 
+func (a *A) Mass() float64      { return a.mass }
 func (a *A) Position() vector.V { return a.position.V() }
 func (a *A) Velocity() vector.V { return a.velocity.V() }
 func (a *A) Radius() float64    { return a.radius }
 func (a *A) Heading() polar.V   { return a.heading.V() }
-func (a *A) Mass() float64      { return a.mass }
 
 func (a *A) IsProjectile() bool { return a.mask&mask.MSizeProjectile != 0 }
 
@@ -115,17 +113,15 @@ func New(o O) *A {
 	h.Copy(o.Heading)
 
 	a := &A{
+		mass:     o.Mass,
 		position: p,
 		velocity: v,
 		radius:   o.Radius,
 		heading:  h,
 
-		maxVelocity:            o.MaxVelocity,
-		maxAngularVelocity:     o.MaxAngularVelocity,
-		maxAcceleration:        o.MaxAcceleration,
-		maxAngularAcceleration: o.MaxAngularAcceleration,
-
-		mass: o.Mass,
+		maxVelocity:        o.MaxVelocity,
+		maxAngularVelocity: o.MaxAngularVelocity,
+		maxAcceleration:    o.MaxAcceleration,
 
 		mask: o.Mask,
 	}
@@ -190,4 +186,58 @@ func SetCollisionVelocity(a *A, b *A, v vector.M) {
 		buf.Scale(c)
 		v.Sub(buf.V())
 	}
+}
+
+func SetVelocity(a *A, v vector.M) {
+	// Highest priority is to honor complete stops in case of a crash.
+	if vector.Magnitude(v.V()) == 0 {
+		return
+	}
+
+	if c := vector.Magnitude(v.V()); c > a.maxVelocity {
+		v.Scale(a.maxVelocity / c)
+	}
+
+	buf := vector.M{0, 0}
+	buf.Copy(v.V())
+	buf.Sub(a.Velocity())
+
+	if c := vector.Magnitude(buf.V()); c > a.maxAcceleration {
+		buf.Scale(a.maxAcceleration / c)
+		v.Copy(a.Velocity())
+		v.Add(buf.V())
+	}
+}
+
+// SetHeading sets the input velocity and heading vectors to the appropriate
+// simulated values for the next tick.
+//
+// TODO(minkezhang): Handle agents that can reverse.
+func SetHeading(a *A, d time.Duration, v vector.M, h polar.M) {
+	h.Copy(a.Heading())
+	p := polar.Polar(v.V())
+
+	// We do not need to worry about scaling v by t, as we only care about
+	// the angular difference between v and the heading.
+	omega := a.maxAngularVelocity * (float64(d) / float64(time.Second))
+
+	if a.Heading().Theta() > p.Theta() {
+		if a.Heading().Theta()-p.Theta() > omega {
+			h.SetTheta(a.Heading().Theta() - omega)
+			v.SetX(0)
+			v.SetY(0)
+		} else {
+			h.SetTheta(p.Theta())
+		}
+	} else if a.Heading().Theta() < p.Theta() {
+		if p.Theta()-a.Heading().Theta() > omega {
+			h.SetTheta(a.Heading().Theta() + omega)
+			v.SetX(0)
+			v.SetY(0)
+		} else {
+			h.SetTheta(p.Theta())
+		}
+	}
+
+	h.Normalize()
 }
