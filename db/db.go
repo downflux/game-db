@@ -115,7 +115,7 @@ type result struct {
 	v     vector.V
 }
 
-func (db *DB) generateVelocities(out chan<- result) {
+func (db *DB) generate(out chan<- result) {
 	ch := make(chan *agent.A, 256)
 
 	go func() {
@@ -146,10 +146,17 @@ func (db *DB) generateVelocities(out chan<- result) {
 				v := vector.M{0, 0}
 				v.Copy(a.Velocity())
 
-				r := 2 * a.Radius()
-				for _, y := range db.Neighbors(a.ID(), agent.AABB(a.Position(), r), agent.IsSquishableColliding) {
-					b := db.agents[y]
-					agent.SetCollisionVelocity(a, b, v)
+				// Check for only geometric collisions, i.e.
+				// overlapping radii.
+				for _, y := range db.Neighbors(
+					a.ID(),
+					agent.AABB(
+						a.Position(),
+						a.Radius(),
+					),
+					agent.IsSquishableColliding,
+				) {
+					agent.SetCollisionVelocity(a, db.agents[y], v)
 				}
 
 				out <- result{
@@ -168,7 +175,7 @@ func (db *DB) generateVelocities(out chan<- result) {
 // be modified by the user.
 func (db *DB) Tick(d time.Duration) {
 	out := make(chan result, 256)
-	go db.generateVelocities(out)
+	go db.generate(out)
 
 	t := float64(d) / float64(time.Second)
 
