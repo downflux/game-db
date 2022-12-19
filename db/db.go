@@ -111,8 +111,8 @@ func (db *DB) SetPosition(x id.ID, v vector.V) { db.agents[x].Position().M().Cop
 func (db *DB) SetVelocity(x id.ID, v vector.V) { db.agents[x].Velocity().M().Copy(v) }
 
 type result struct {
-	id id.ID
-	v  vector.V
+	agent *agent.A
+	v     vector.V
 }
 
 func (db *DB) generateVelocities(out chan<- result) {
@@ -132,8 +132,8 @@ func (db *DB) generateVelocities(out chan<- result) {
 		defer wg.Done()
 		for _, a := range db.projectiles {
 			out <- result{
-				id: a.ID(),
-				v:  a.Velocity(),
+				agent: a,
+				v:     a.Velocity(),
 			}
 		}
 	}()
@@ -153,8 +153,8 @@ func (db *DB) generateVelocities(out chan<- result) {
 				}
 
 				out <- result{
-					id: a.ID(),
-					v:  v.V(),
+					agent: a,
+					v:     v.V(),
 				}
 			}
 		}()
@@ -178,11 +178,7 @@ func (db *DB) Tick(d time.Duration) {
 		go func() {
 			defer wg.Done()
 			for r := range out {
-				a, ok := db.agents[r.id]
-				if !ok {
-					a = db.projectiles[r.id]
-				}
-				a.Position().M().Add(vector.Scale(t, r.v))
+				r.agent.Position().M().Add(vector.Scale(t, r.v))
 			}
 		}()
 	}
