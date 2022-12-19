@@ -224,6 +224,7 @@ func (db *DB) Tick(d time.Duration) {
 		go func() {
 			defer wg.Done()
 			for r := range out {
+				// TODO(minkezhang): Take into account rotation.
 				r.agent.Position().M().Add(vector.Scale(t, r.v))
 			}
 		}()

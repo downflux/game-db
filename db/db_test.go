@@ -133,6 +133,100 @@ func TestNeighbors(t *testing.T) {
 	}
 }
 
+func TestTick(t *testing.T) {
+	type config struct {
+		name string
+		db   *DB
+		d    time.Duration
+		want map[id.ID]vector.V
+	}
+
+	configs := []config{
+		func() config {
+			db := New(DefaultO)
+			a := db.Insert(agent.O{
+				Position: vector.V{10, 10},
+				Velocity: vector.V{1, 1},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			return config{
+				name: "Trivial",
+				db:   db,
+				d:    100 * time.Millisecond,
+				want: map[id.ID]vector.V{
+					a.ID(): vector.V{10.1, 10.1},
+				},
+			}
+		}(),
+		func() config {
+			db := New(DefaultO)
+			a := db.Insert(agent.O{
+				Position: vector.V{10, 10},
+				Velocity: vector.V{0, 1},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			b := db.Insert(agent.O{
+				Position: vector.V{10, 12},
+				Velocity: vector.V{0, -1},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			return config{
+				name: "Collision",
+				db:   db,
+				d:    100 * time.Millisecond,
+				want: map[id.ID]vector.V{
+					a.ID(): vector.V{10, 10},
+					b.ID(): vector.V{10, 12},
+				},
+			}
+		}(),
+		func() config {
+			db := New(DefaultO)
+			a := db.Insert(agent.O{
+				Position: vector.V{10, 10},
+				Velocity: vector.V{0, 1},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			b := db.Insert(agent.O{
+				Position: vector.V{10, 12},
+				Velocity: vector.V{0, -1},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeProjectile,
+			})
+			return config{
+				name: "Collision/IgnoreProjectile",
+				db:   db,
+				d:    100 * time.Millisecond,
+				want: map[id.ID]vector.V{
+					a.ID(): vector.V{10, 10.1},
+					b.ID(): vector.V{10, 11.9},
+				},
+			}
+		}(),
+	}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			c.db.Tick(c.d)
+			for x, want := range c.want {
+				got := c.db.GetOrDie(x).Position()
+				if !vector.Within(got, want) {
+					t.Errorf("Position() = %v, want = %v", got, want)
+				}
+			}
+		})
+	}
+}
+
 func BenchmarkTick(b *testing.B) {
 	db := New(DefaultO)
 	for i := 0; i < N; i++ {
