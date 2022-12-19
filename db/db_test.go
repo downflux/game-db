@@ -176,7 +176,7 @@ func TestTick(t *testing.T) {
 				Position:    vector.V{10, 12},
 				Velocity:    vector.V{0, -1},
 				MaxVelocity: 1,
-				Heading:     polar.V{1, -math.Pi / 2},
+				Heading:     polar.V{1, 3 * math.Pi / 2},
 				Radius:      1,
 				Mask:        mask.MSizeSmall,
 			})
@@ -204,7 +204,7 @@ func TestTick(t *testing.T) {
 				Position:    vector.V{10, 12},
 				Velocity:    vector.V{0, -1},
 				MaxVelocity: 1,
-				Heading:     polar.V{1, -math.Pi / 2},
+				Heading:     polar.V{1, 3 * math.Pi / 2},
 				Radius:      1,
 				Mask:        mask.MSizeProjectile,
 			})

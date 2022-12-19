@@ -110,7 +110,7 @@ func New(o O) *A {
 	v := vector.V([]float64{0, 0}).M()
 	v.Copy(o.Velocity)
 	h := polar.V([]float64{0, 0}).M()
-	h.Copy(o.Heading)
+	h.Copy(polar.Normalize(o.Heading))
 
 	a := &A{
 		mass:     o.Mass,
