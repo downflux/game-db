@@ -54,11 +54,7 @@ func New(o O) *DB {
 }
 
 func (db *DB) Delete(x id.ID) {
-	a, ok := db.agents[x]
-	if !ok {
-		a = db.projectiles[x]
-	}
-
+	a := db.GetOrDie(x)
 	if a.IsProjectile() {
 		delete(db.projectiles, x)
 	} else {
@@ -90,13 +86,8 @@ func (db *DB) Insert(o agent.O) *agent.A {
 
 // Neighbors returns a list of neighboring agents to the input.
 func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
-	a, ok := db.agents[x]
-	if !ok {
-		a = db.projectiles[x]
-	}
-
+	a := db.GetOrDie(x)
 	broadphase := db.bvh.BroadPhase(q)
-
 	collisions := make([]id.ID, 0, len(broadphase))
 	for _, y := range broadphase {
 		b := db.agents[y]
@@ -107,13 +98,19 @@ func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) 
 	return collisions
 }
 
+func (db *DB) GetOrDie(x id.ID) *agent.A {
+	a, ok := db.agents[x]
+	if !ok {
+		a = db.projectiles[x]
+	}
+	if a == nil {
+		panic(fmt.Sprintf("cannot find agent %v", x))
+	}
+	return a
+}
+
 func (db *DB) SetPosition(x id.ID, v vector.V) { db.agents[x].Position().M().Copy(v) }
 func (db *DB) SetVelocity(x id.ID, v vector.V) { db.agents[x].Velocity().M().Copy(v) }
-
-type result struct {
-	agent *agent.A
-	v     vector.V
-}
 
 func (db *DB) generate(out chan<- result) {
 	ch := make(chan *agent.A, 256)
@@ -194,4 +191,9 @@ func (db *DB) Tick(d time.Duration) {
 	for x, a := range db.agents {
 		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
 	}
+}
+
+type result struct {
+	agent *agent.A
+	v     vector.V
 }
