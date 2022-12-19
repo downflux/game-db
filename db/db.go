@@ -110,69 +110,79 @@ func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) 
 func (db *DB) SetPosition(x id.ID, v vector.V) { db.agents[x].Position().M().Copy(v) }
 func (db *DB) SetVelocity(x id.ID, v vector.V) { db.agents[x].Velocity().M().Copy(v) }
 
-func (db *DB) generateVelocity() {
+type result struct {
+	id id.ID
+	v  vector.V
+}
+
+func (db *DB) generateVelocities(out chan<- result) {
 	ch := make(chan *agent.A, 256)
+
 	go func() {
 		for _, a := range db.agents {
-			ch <- a
-		}
-		for _, a := range db.projectiles {
 			ch <- a
 		}
 		close(ch)
 	}()
 
 	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for _, a := range db.projectiles {
+			out <- result{
+				id: a.ID(),
+				v:  a.Velocity(),
+			}
+		}
+	}()
+
 	for i := 0; i < db.poolSize; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for a := range ch {
+				v := vector.M{0, 0}
+				v.Copy(a.Velocity())
+
 				r := 2 * a.Radius()
 				for _, y := range db.Neighbors(a.ID(), agent.AABB(a.Position(), r), agent.IsSquishableColliding) {
 					b := db.agents[y]
+					agent.SetCollisionVelocity(a, b, v)
+				}
 
-					// TODO(minkezhang): Calculate new
-					// velocities based on elastic or
-					// inelastic collisions.
-					//
-					// TODO(minkezhang): Do not set
-					// velocities in parallel loop. Return
-					// channel instead.
-					a.Velocity().M().Copy(a.Velocity())
-					b.Velocity().M().Copy(b.Velocity())
+				out <- result{
+					id: a.ID(),
+					v:  v.V(),
 				}
 			}
 		}()
 	}
+
 	wg.Wait()
+	close(out)
 }
 
 // Tick advances the world by one tick. During this execution, agents must not
 // be modified by the user.
 func (db *DB) Tick(d time.Duration) {
-	db.generateVelocity()
+	out := make(chan result, 256)
+	go db.generateVelocities(out)
 
 	t := float64(d) / float64(time.Second)
-
-	ch := make(chan *agent.A, 256)
-	go func() {
-		for _, a := range db.agents {
-			ch <- a
-		}
-		for _, a := range db.projectiles {
-			ch <- a
-		}
-		close(ch)
-	}()
 
 	var wg sync.WaitGroup
 	for i := 0; i < db.poolSize; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for a := range ch {
-				a.Position().M().Add(vector.Scale(t, a.Velocity()))
+			for r := range out {
+				a, ok := db.agents[r.id]
+				if !ok {
+					a = db.projectiles[r.id]
+				}
+				a.Position().M().Add(vector.Scale(t, r.v))
 			}
 		}()
 	}

@@ -27,25 +27,6 @@ func rv(min, max float64) vector.V {
 	}
 }
 
-func BenchmarkGenerateVelocity(b *testing.B) {
-	db := New(DefaultO)
-	for i := 0; i < N; i++ {
-		db.Insert(agent.O{
-			Radius:   R,
-			Position: rv(Min, Max),
-			Velocity: rv(-1, 1),
-			Heading:  polar.V{1, 0},
-			Mask:     mask.MSizeSmall,
-		})
-	}
-
-	b.Run(fmt.Sprintf("N=%v", N), func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			db.generateVelocity()
-		}
-	})
-}
-
 func BenchmarkTick(b *testing.B) {
 	db := New(DefaultO)
 	for i := 0; i < N; i++ {
