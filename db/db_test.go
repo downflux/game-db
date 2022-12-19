@@ -237,11 +237,14 @@ func BenchmarkTick(b *testing.B) {
 	db := New(DefaultO)
 	for i := 0; i < N; i++ {
 		db.Insert(agent.O{
-			Radius:   R,
-			Position: rv(Min, Max),
-			Velocity: rv(-1, 1),
-			Heading:  polar.V{1, 0},
-			Mask:     mask.MSizeSmall,
+			Radius:             R,
+			Position:           rv(Min, Max),
+			Velocity:           rv(-1, 1),
+			MaxVelocity:        60,
+			MaxAcceleration:    10,
+			MaxAngularVelocity: math.Pi / 4,
+			Heading:            polar.V{1, 0},
+			Mask:               mask.MSizeSmall,
 		})
 	}
 
