@@ -34,7 +34,8 @@ type DB struct {
 	agents      map[id.ID]*agent.A
 	projectiles map[id.ID]*agent.A
 
-	bvh *bvh.T
+	bvhL sync.RWMutex
+	bvh  *bvh.T
 
 	poolSize int
 	counter  uint64
@@ -54,7 +55,10 @@ func New(o O) *DB {
 }
 
 func (db *DB) Delete(x id.ID) {
-	a := db.GetOrDie(x)
+	db.bvhL.Lock()
+	defer db.bvhL.Unlock()
+
+	a := db.getOrDie(x)
 	if a.IsProjectile() {
 		delete(db.projectiles, x)
 	} else {
@@ -66,6 +70,9 @@ func (db *DB) Delete(x id.ID) {
 }
 
 func (db *DB) Insert(o agent.O) *agent.A {
+	db.bvhL.Lock()
+	defer db.bvhL.Unlock()
+
 	x := id.ID(db.counter)
 	db.counter++
 
@@ -86,7 +93,14 @@ func (db *DB) Insert(o agent.O) *agent.A {
 
 // Neighbors returns a list of neighboring agents to the input.
 func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
-	a := db.GetOrDie(x)
+	db.bvhL.RLock()
+	defer db.bvhL.RUnlock()
+
+	return db.neighbors(x, q, filter)
+}
+
+func (db *DB) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
+	a := db.getOrDie(x)
 	broadphase := db.bvh.BroadPhase(q)
 	collisions := make([]id.ID, 0, len(broadphase))
 	for _, y := range broadphase {
@@ -99,6 +113,13 @@ func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) 
 }
 
 func (db *DB) GetOrDie(x id.ID) *agent.A {
+	db.bvhL.RLock()
+	defer db.bvhL.RUnlock()
+
+	return db.getOrDie(x)
+}
+
+func (db *DB) getOrDie(x id.ID) *agent.A {
 	a, ok := db.agents[x]
 	if !ok {
 		a = db.projectiles[x]
@@ -109,8 +130,26 @@ func (db *DB) GetOrDie(x id.ID) *agent.A {
 	return a
 }
 
-func (db *DB) SetPosition(x id.ID, v vector.V) { db.agents[x].Position().M().Copy(v) }
-func (db *DB) SetVelocity(x id.ID, v vector.V) { db.agents[x].Velocity().M().Copy(v) }
+func (db *DB) SetPosition(x id.ID, v vector.V) {
+	db.bvhL.Lock()
+	defer db.bvhL.Unlock()
+
+	a := db.getOrDie(x)
+	a.Position().M().Copy(v)
+
+	if !a.IsProjectile() {
+		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
+	}
+}
+
+func (db *DB) SetVelocity(x id.ID, v vector.V) {
+	// SetVelocity does not mutate the BVH, but the central Tick function
+	// does need to read the velocity.
+	db.bvhL.RLock()
+	defer db.bvhL.RUnlock()
+
+	db.getOrDie(x).Velocity().M().Copy(v)
+}
 
 func (db *DB) generate(out chan<- result) {
 	ch := make(chan *agent.A, 256)
@@ -145,7 +184,7 @@ func (db *DB) generate(out chan<- result) {
 
 				// Check for only geometric collisions, i.e.
 				// overlapping radii.
-				for _, y := range db.Neighbors(
+				for _, y := range db.neighbors(
 					a.ID(),
 					agent.AABB(
 						a.Position(),
@@ -171,6 +210,9 @@ func (db *DB) generate(out chan<- result) {
 // Tick advances the world by one tick. During this execution, agents must not
 // be modified by the user.
 func (db *DB) Tick(d time.Duration) {
+	db.bvhL.Lock()
+	defer db.bvhL.Unlock()
+
 	out := make(chan result, 256)
 	go db.generate(out)
 
