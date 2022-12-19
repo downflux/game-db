@@ -182,6 +182,9 @@ func (db *DB) generate(out chan<- result) {
 			defer wg.Done()
 			for a := range ch {
 				v := vector.M{0, 0}
+				// TODO(minkezhang): Investigate what happens if
+				// we change this velocity to the nearest
+				// 8-directional alignment.
 				v.Copy(a.Velocity())
 
 				// Check for collisions which the agent cares
