@@ -34,6 +34,8 @@ type DB struct {
 	agents      map[id.ID]*agent.A
 	projectiles map[id.ID]*agent.A
 
+	// TODO(minkezhang): Add wall collision detection.
+
 	bvhL sync.RWMutex
 	bvh  *bvh.T
 
