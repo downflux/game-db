@@ -154,63 +154,43 @@ func (db *DB) SetVelocity(x id.ID, v vector.V) {
 	db.getOrDie(x).Velocity().M().Copy(v)
 }
 
-func (db *DB) generate(out chan<- result) {
-	ch := make(chan *agent.A, 256)
+func (db *DB) generate() []result {
+	results := make([]result, 0, 256)
 
-	go func() {
-		for _, a := range db.agents {
-			ch <- a
-		}
-		close(ch)
-	}()
-
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for _, a := range db.projectiles {
-			out <- result{
-				agent: a,
-				v:     a.Velocity(),
-			}
-		}
-	}()
-
-	for i := 0; i < db.poolSize; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for a := range ch {
-				v := vector.M{0, 0}
-				// TODO(minkezhang): Investigate what happens if
-				// we change this velocity to the nearest
-				// 8-directional alignment.
-				v.Copy(a.Velocity())
-
-				// Check for collisions which the agent cares
-				// about, e.g. care about squishability.
-				for _, y := range db.neighbors(
-					a.ID(),
-					agent.AABB(
-						a.Position(),
-						a.Radius(),
-					),
-					agent.IsSquishableColliding,
-				) {
-					agent.SetCollisionVelocity(a, db.agents[y], v)
-				}
-
-				out <- result{
-					agent: a,
-					v:     v.V(),
-				}
-			}
-		}()
+	for _, a := range db.projectiles {
+		results = append(results, result{
+			agent: a,
+			v:     a.Velocity(),
+		})
 	}
 
-	wg.Wait()
-	close(out)
+	for _, a := range db.agents {
+		v := vector.M{0, 0}
+		// TODO(minkezhang): Investigate what happens if
+		// we change this velocity to the nearest
+		// 8-directional alignment.
+		v.Copy(a.Velocity())
+
+		// Check for collisions which the agent cares
+		// about, e.g. care about squishability.
+		for _, y := range db.neighbors(
+			a.ID(),
+			agent.AABB(
+				a.Position(),
+				a.Radius(),
+			),
+			agent.IsSquishableColliding,
+		) {
+			agent.SetCollisionVelocity(a, db.agents[y], v)
+		}
+
+		results = append(results, result{
+			agent: a,
+			v:     v.V(),
+		})
+	}
+
+	return results
 }
 
 // Tick advances the world by one tick. During this execution, agents must not
@@ -219,44 +199,20 @@ func (db *DB) Tick(d time.Duration) {
 	db.bvhL.Lock()
 	defer db.bvhL.Unlock()
 
-	out := make(chan result, 256)
-	go db.generate(out)
-
 	t := float64(d) / float64(time.Second)
 
-	results := make([]result, 0, 256)
-	for r := range out {
-		results = append(results, r)
+	for _, r := range db.generate() {
+		agent.SetVelocity(r.agent, r.v.M())
+
+		// N.B.: The velocity can be further reduced to
+		// zero here due to the physical limitations of
+		// the agent.
+		h := polar.V{1, r.agent.Heading().Theta()}
+		agent.SetHeading(r.agent, d, r.v.M(), h.M())
+
+		r.agent.Position().M().Add(vector.Scale(t, r.v))
+		r.agent.Heading().M().Copy(h)
 	}
-
-	in := make(chan result, 256)
-	go func() {
-		for _, r := range results {
-			in <- r
-		}
-		close(in)
-	}()
-
-	var wg sync.WaitGroup
-	for i := 0; i < db.poolSize; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for r := range in {
-				agent.SetVelocity(r.agent, r.v.M())
-
-				// N.B.: The velocity can be further reduced to
-				// zero here due to the physical limitations of
-				// the agent.
-				h := polar.V{1, r.agent.Heading().Theta()}
-				agent.SetHeading(r.agent, d, r.v.M(), h.M())
-
-				r.agent.Position().M().Add(vector.Scale(t, r.v))
-				r.agent.Heading().M().Copy(h)
-			}
-		}()
-	}
-	wg.Wait()
 
 	for x, a := range db.agents {
 		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))

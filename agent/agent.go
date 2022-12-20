@@ -7,6 +7,7 @@ import (
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
+	"github.com/downflux/go-geometry/epsilon"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
 	vnd "github.com/downflux/go-geometry/nd/vector"
@@ -212,6 +213,10 @@ func SetVelocity(a *A, v vector.M) {
 //
 // TODO(minkezhang): Handle agents that can reverse.
 func SetHeading(a *A, d time.Duration, v vector.M, h polar.M) {
+	if epsilon.Within(vector.Magnitude(v.V()), 0) {
+		return
+	}
+
 	h.Copy(a.Heading())
 	p := polar.Polar(v.V())
 
