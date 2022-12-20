@@ -18,10 +18,7 @@ import (
 )
 
 const (
-	N   = 1000
 	R   = 0.5
-	Min = 0
-	Max = 300
 )
 
 func rn(min, max float64) float64 { return min + rand.Float64()*(max-min) }
@@ -234,23 +231,47 @@ func TestTick(t *testing.T) {
 }
 
 func BenchmarkTick(b *testing.B) {
-	db := New(DefaultO)
-	for i := 0; i < N; i++ {
-		db.Insert(agent.O{
-			Radius:             R,
-			Position:           rv(Min, Max),
-			Velocity:           rv(-1, 1),
-			MaxVelocity:        60,
-			MaxAcceleration:    10,
-			MaxAngularVelocity: math.Pi / 4,
-			Heading:            polar.V{1, 0},
-			Mask:               mask.MSizeSmall,
-		})
+	type config struct {
+		name     string
+		n        int
+		coverage float64
 	}
 
-	b.Run(fmt.Sprintf("N=%v", N), func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			db.Tick(33 * time.Millisecond)
+	configs := []config{}
+	for _, n := range []int{1e3, 1e4, 1e5} {
+		for _, coverage := range []float64{0.01, 0.05, 0.1} {
+			configs = append(configs, config{
+				name:     fmt.Sprintf("N=%v/ρ=%v", n, coverage),
+				n:        n,
+				coverage: coverage,
+			})
 		}
-	})
+	}
+
+	for _, c := range configs {
+		b.Run(c.name, func(b *testing.B) {
+			b.StopTimer()
+			area := float64(c.n) * math.Pi * R * R / c.coverage
+			min := 0.0
+			max := math.Sqrt(area)
+
+			db := New(DefaultO)
+			for i := 0; i < c.n; i++ {
+				db.Insert(agent.O{
+					Radius:             R,
+					Position:           rv(min, max),
+					Velocity:           rv(-1, 1),
+					MaxVelocity:        60,
+					MaxAcceleration:    10,
+					MaxAngularVelocity: math.Pi / 4,
+					Heading:            polar.V{1, 0},
+					Mask:               mask.MSizeSmall,
+				})
+			}
+			b.StartTimer()
+			for i := 0; i < b.N; i++ {
+				db.Tick(33 * time.Millisecond)
+			}
+		})
+	}
 }
