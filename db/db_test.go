@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	R   = 0.5
+	R = 0.5
 )
 
 func rn(min, max float64) float64 { return min + rand.Float64()*(max-min) }

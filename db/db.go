@@ -224,12 +224,25 @@ func (db *DB) Tick(d time.Duration) {
 
 	t := float64(d) / float64(time.Second)
 
+	results := make([]result, 0, 256)
+	for r := range out {
+		results = append(results, r)
+	}
+
+	in := make(chan result, 256)
+	go func() {
+		for _, r := range results {
+			in <- r
+		}
+		close(in)
+	}()
+
 	var wg sync.WaitGroup
 	for i := 0; i < db.poolSize; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for r := range out {
+			for r := range in {
 				agent.SetVelocity(r.agent, r.v.M())
 
 				// N.B.: The velocity can be further reduced to
