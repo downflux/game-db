@@ -189,11 +189,6 @@ func SetCollisionVelocity(a *A, b *A, v vector.M) {
 }
 
 func SetVelocity(a *A, v vector.M) {
-	// Highest priority is to honor complete stops in case of a crash.
-	if vector.Magnitude(v.V()) == 0 {
-		return
-	}
-
 	if c := vector.Magnitude(v.V()); c > a.maxVelocity {
 		v.Scale(a.maxVelocity / c)
 	}
@@ -202,10 +197,13 @@ func SetVelocity(a *A, v vector.M) {
 	buf.Copy(v.V())
 	buf.Sub(a.Velocity())
 
-	if c := vector.Magnitude(buf.V()); c > a.maxAcceleration {
-		buf.Scale(a.maxAcceleration / c)
-		v.Copy(a.Velocity())
-		v.Add(buf.V())
+	// Do not apply acceleration limits for breaking.
+	if vector.Magnitude(a.Velocity()) < vector.Magnitude(v.V()) {
+		if c := vector.Magnitude(buf.V()); c > a.maxAcceleration {
+			buf.Scale(a.maxAcceleration / c)
+			v.Copy(a.Velocity())
+			v.Add(buf.V())
+		}
 	}
 }
 
