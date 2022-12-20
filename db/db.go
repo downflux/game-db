@@ -7,6 +7,7 @@ import (
 
 	"github.com/downflux/game-db/agent"
 	"github.com/downflux/go-bvh/bvh"
+	"github.com/downflux/go-bvh/container"
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
@@ -38,7 +39,7 @@ type DB struct {
 	// TODO(minkezhang): Add wall collision detection.
 
 	bvhL sync.RWMutex
-	bvh  *bvh.T
+	bvh  container.C
 
 	poolSize int
 	counter  uint64
