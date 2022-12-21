@@ -1,7 +1,9 @@
 package agent
 
 import (
+	"fmt"
 	"math"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -70,11 +72,64 @@ func TestSetVelocity(t *testing.T) {
 	}
 }
 
+func rn(min, max float64) float64  { return min + rand.Float64()*(max-min) }
+func rv(min, max float64) vector.V { return vector.V{rn(min, max), rn(min, max)} }
+
+/*
+	func TestSetCollisionVelocityOrderInvariant(t *testing.T) {
+		min, max := 0.0, 500.
+		n := 1000
+
+		p := vector.V{0, 0}
+		var neighbors []vector.V
+		neighbors = []vector.V{
+			vector.V{1, 0},
+			vector.V{0, 1},
+		}
+		for i := 0; i < n; i++ {
+			neighbors = append(neighbors, rv(min, max))
+		}
+
+		v := rv(min, max)
+
+		want := vector.V{0, 0}.M()
+		want.Copy(v)
+
+		for _, q := range neighbors {
+			SetCollisionVelocity(&A{
+				position: p.M(),
+			}, &A{
+				position: q.M(),
+			},
+				want,
+			)
+		}
+
+		rand.Shuffle(len(neighbors), func(i, j int) { neighbors[i], neighbors[j] = neighbors[j], neighbors[i] })
+
+		got := vector.V{0, 0}.M()
+		got.Copy(v)
+
+		for _, q := range neighbors {
+			SetCollisionVelocity(&A{
+				position: p.M(),
+			}, &A{
+				position: q.M(),
+			},
+				got,
+			)
+		}
+
+		if !vector.Within(want.V(), got.V()) {
+			t.Errorf("SetCollisionVelocity() = %v, want = %v", got, want)
+		}
+	}
+*/
 func TestSetCollisionVelocity(t *testing.T) {
 	type config struct {
 		name string
 		p    vector.V
-		q    vector.V
+		qs   []vector.V
 		v    vector.V
 		want vector.V
 	}
@@ -83,31 +138,98 @@ func TestSetCollisionVelocity(t *testing.T) {
 		{
 			name: "Simple",
 			p:    vector.V{0, 0},
-			q:    vector.V{0, 100},
+			qs:   []vector.V{vector.V{0, 100}},
 			v:    vector.V{0, 2},
 			want: vector.V{0, 0},
 		},
 		{
 			name: "Simple/NoCollision/Perpendicular",
 			p:    vector.V{0, 0},
-			q:    vector.V{100, 0},
+			qs:   []vector.V{vector.V{100, 0}},
 			v:    vector.V{0, 2},
 			want: vector.V{0, 2},
 		},
 		{
 			name: "Simple/NoCollision",
 			p:    vector.V{0, 0},
-			q:    vector.V{0, -100},
+			qs:   []vector.V{vector.V{0, -100}},
 			v:    vector.V{0, 2},
 			want: vector.V{0, 2},
 		},
 		{
 			name: "Angle",
 			p:    vector.V{0, 0},
-			q:    vector.V{0, 100},
+			qs:   []vector.V{vector.V{0, 100}},
 			v:    vector.V{2, 2},
 			want: vector.V{2, 0},
 		},
+		{
+			name: "Multiple",
+			p:    vector.V{0, 0},
+			qs: []vector.V{
+				vector.V{0, 1},
+				vector.V{1, 0},
+			},
+			v:    vector.V{1, 1},
+			want: vector.V{0, 0},
+		},
+		{
+			name: "Multiple/Reverse",
+			p:    vector.V{0, 0},
+			qs: []vector.V{
+				vector.V{0, 1},
+				vector.V{1, 0},
+			},
+			v:    vector.V{-1, -1},
+			want: vector.V{-1, -1},
+		},
+		{
+			name: "Multiple/Flanked",
+			p:    vector.V{0, 0},
+			qs: []vector.V{
+				vector.V{1, 0},
+				vector.V{-1, 0},
+			},
+			v:    vector.V{3, 1},
+			want: vector.V{0, 1},
+		},
+		{
+			name: "Multiple/Flanked/Reversed",
+			p:    vector.V{0, 0},
+			qs: []vector.V{
+				vector.V{-1, 0},
+				vector.V{1, 0},
+			},
+			v:    vector.V{3, 1},
+			want: vector.V{0, 1},
+		},
+	}
+
+	for i := 0; i < 2; i++ {
+		const min, max = 0, 500
+		p := rv(min, max)
+		qs := []vector.V{rv(min, max), rv(min, max)}
+		v := rv(min, max)
+
+		want := vector.M{0, 0}
+		want.Copy(v)
+
+		for _, q := range qs {
+			SetCollisionVelocity(&A{
+				position: p.M(),
+			}, &A{
+				position: q.M(),
+			},
+				want,
+			)
+		}
+		configs = append(configs, config{
+			name: fmt.Sprintf("OrderInvariant/%v", i),
+			p:    p,
+			qs:   []vector.V{qs[1], qs[0]},
+			v:    v,
+			want: want.V(),
+		})
 	}
 
 	for _, c := range configs {
@@ -115,11 +237,13 @@ func TestSetCollisionVelocity(t *testing.T) {
 			a := &A{
 				position: c.p.M(),
 			}
-			b := &A{
-				position: c.q.M(),
+			for _, q := range c.qs {
+				b := &A{
+					position: q.M(),
+				}
+				SetCollisionVelocity(a, b, c.v.M())
 			}
 
-			SetCollisionVelocity(a, b, c.v.M())
 			if !vector.Within(c.v, c.want) {
 				t.Errorf("SetCollisionVelocity() = %v, want = %v", c.v, c.want)
 			}
