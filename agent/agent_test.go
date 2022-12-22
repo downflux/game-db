@@ -154,25 +154,32 @@ func TestSetCollisionVelocity(t *testing.T) {
 			v:    vector.V{3, 1},
 			want: vector.V{0, 1},
 		},
+		// A = (0, 0)
+		// B = (1, 0)
+		// C = (math.Sqrt(3), 1)
+		// v = (1, 1)
+		//
+		// C lies π / 6 above the Y-axis.
+		// v lies π / 4 above the Y-axis.
 		{
 			name: "OrderInvariant/Custom",
-			p:    vector.V{50, 150},
+			p:    vector.V{0, 0},
 			qs: []vector.V{
-				vector.V{100, 190},
-				vector.V{250, 400},
+				vector.V{1, 0},
+				vector.V{math.Sqrt(3), 1},
 			},
-			v:    vector.V{160, 230},
-			want: vector.V{-60.678167757287326, 48.54253420582985},
+			v:    vector.V{1, 1},
+			want: vector.V{-math.Sqrt(3) / 4, 0.75},
 		},
 		{
 			name: "OrderInvariant/Custom/Inverse",
-			p:    vector.V{50, 150},
+			p:    vector.V{0, 0},
 			qs: []vector.V{
-				vector.V{250, 400},
-				vector.V{100, 190},
+				vector.V{math.Sqrt(3), 1},
+				vector.V{1, 0},
 			},
-			v:    vector.V{160, 230},
-			want: vector.V{-60.678167757287326, 48.54253420582985},
+			v:    vector.V{1, 1},
+			want: vector.V{-math.Sqrt(3) / 4, 0.75},
 		},
 	}
 
