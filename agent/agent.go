@@ -16,7 +16,6 @@ import (
 // O is an agent constructor option struct. All numbers are in SI units, e.g.
 // meters, seconds, etc.
 type O struct {
-	Mass     float64
 	Position vector.V
 	Velocity vector.V
 
@@ -34,7 +33,6 @@ type O struct {
 type A struct {
 	id id.ID
 
-	mass     float64
 	position vector.M
 	velocity vector.M
 	radius   float64
@@ -54,7 +52,6 @@ type A struct {
 
 func (a *A) ID() id.ID { return a.id }
 
-func (a *A) Mass() float64      { return a.mass }
 func (a *A) Position() vector.V { return a.position.V() }
 func (a *A) Velocity() vector.V { return a.velocity.V() }
 func (a *A) Radius() float64    { return a.radius }
@@ -114,7 +111,6 @@ func New(o O) *A {
 	h.Copy(polar.Normalize(o.Heading))
 
 	a := &A{
-		mass:     o.Mass,
 		position: p,
 		velocity: v,
 		radius:   o.Radius,

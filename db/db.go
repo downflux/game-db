@@ -21,8 +21,8 @@ var (
 	// coverage.
 	DefaultO O = O{
 		LeafSize:  8,
-		Tolerance: 1.1,
-		PoolSize:  8,
+		Tolerance: 1.15,
+		PoolSize:  24,
 	}
 )
 
