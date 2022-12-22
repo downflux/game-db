@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/downflux/game-db/agent"
-	"github.com/downflux/game-db/agent/mask"
 	"github.com/downflux/go-bvh/id"
+	"github.com/downflux/go-collisions/agent"
+	"github.com/downflux/go-collisions/agent/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"

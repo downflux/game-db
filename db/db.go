@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/downflux/game-db/agent"
 	"github.com/downflux/go-bvh/bvh"
 	"github.com/downflux/go-bvh/container"
 	"github.com/downflux/go-bvh/id"
+	"github.com/downflux/go-collisions/agent"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"

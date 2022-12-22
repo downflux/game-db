@@ -1,4 +1,4 @@
-module github.com/downflux/game-db
+module github.com/downflux/go-collisions
 
 go 1.19
 

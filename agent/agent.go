@@ -3,8 +3,8 @@ package agent
 import (
 	"time"
 
-	"github.com/downflux/game-db/agent/mask"
 	"github.com/downflux/go-bvh/id"
+	"github.com/downflux/go-collisions/agent/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
