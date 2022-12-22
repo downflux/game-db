@@ -203,6 +203,26 @@ func TestSetCollisionVelocity(t *testing.T) {
 			v:    vector.V{3, 1},
 			want: vector.V{0, 1},
 		},
+		{
+			name: "OrderInvariant/Custom",
+			p:    vector.V{50, 150},
+			qs: []vector.V{
+				vector.V{100, 190},
+				vector.V{250, 400},
+			},
+			v:    vector.V{160, 230},
+			want: vector.V{-60.678167757287326, 48.54253420582985},
+		},
+		{
+			name: "OrderInvariant/Custom/Inverse",
+			p:    vector.V{50, 150},
+			qs: []vector.V{
+				vector.V{250, 400},
+				vector.V{100, 190},
+			},
+			v:    vector.V{160, 230},
+			want: vector.V{-60.678167757287326, 48.54253420582985},
+		},
 	}
 
 	for i := 0; i < 2; i++ {
@@ -234,6 +254,9 @@ func TestSetCollisionVelocity(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
+			v := vector.M{0, 0}
+			v.Copy(c.v)
+
 			a := &A{
 				position: c.p.M(),
 			}
@@ -241,11 +264,12 @@ func TestSetCollisionVelocity(t *testing.T) {
 				b := &A{
 					position: q.M(),
 				}
-				SetCollisionVelocity(a, b, c.v.M())
+				SetCollisionVelocity(a, b, v)
 			}
 
-			if !vector.Within(c.v, c.want) {
-				t.Errorf("SetCollisionVelocity() = %v, want = %v", c.v, c.want)
+			if !vector.Within(v.V(), c.want) {
+				t.Errorf("DEBUG: %v, %v, %v", c.p, c.qs, c.v)
+				t.Errorf("SetCollisionVelocity() = %v, want = %v", v, c.want)
 			}
 		})
 	}
