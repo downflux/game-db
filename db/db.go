@@ -46,6 +46,9 @@ type DB struct {
 }
 
 func New(o O) *DB {
+	if o.PoolSize < 2 {
+		panic(fmt.Sprintf("PoolSize specified %v is smaller than the minimum value of 2", o.PoolSize))
+	}
 	return &DB{
 		agents:      make(map[id.ID]*agent.A, 1024),
 		projectiles: make(map[id.ID]*agent.A, 1024),
@@ -158,46 +161,78 @@ func (db *DB) SetVelocity(x id.ID, v vector.V) {
 func (db *DB) generate() []result {
 	results := make([]result, 0, 256)
 
-	for _, a := range db.projectiles {
-		results = append(results, result{
-			agent: a,
-			v:     a.Velocity(),
-		})
-	}
+	in := make(chan *agent.A, 256)
+	out := make(chan result, 256)
 
-	for _, a := range db.agents {
-		v := vector.M{0, 0}
-		// TODO(minkezhang): Investigate what happens if
-		// we change this velocity to the nearest
-		// 8-directional alignment.
-		v.Copy(a.Velocity())
+	go func(ch chan<- *agent.A) {
+		for _, a := range db.agents {
+			ch <- a
+		}
+		close(ch)
+	}(in)
 
-		ns := db.neighbors(
-			a.ID(),
-			agent.AABB(
-				a.Position(),
-				a.Radius(),
-			),
-			agent.IsSquishableColliding,
-		)
+	go func(in <-chan *agent.A, out chan<- result) {
 
-		// Check for collisions which the agent cares
-		// about, e.g. care about squishability.
-		for _, y := range ns {
-			agent.SetCollisionVelocity(a, db.agents[y], v)
+		var wg sync.WaitGroup
+
+		wg.Add(db.poolSize)
+		go func(ch chan<- result) {
+			defer wg.Done()
+			for _, a := range db.projectiles {
+				out <- result{
+					agent: a,
+					v:     a.Velocity(),
+				}
+			}
+		}(out)
+
+		for i := 0; i < db.poolSize-1; i++ {
+			go func(in <-chan *agent.A, out chan<- result) {
+				defer wg.Done()
+				for a := range in {
+					v := vector.M{0, 0}
+					// TODO(minkezhang): Investigate what happens if
+					// we change this velocity to the nearest
+					// 8-directional alignment.
+					v.Copy(a.Velocity())
+
+					ns := db.neighbors(
+						a.ID(),
+						agent.AABB(
+							a.Position(),
+							a.Radius(),
+						),
+						agent.IsSquishableColliding,
+					)
+
+					// Check for collisions which the agent cares
+					// about, e.g. care about squishability.
+					for _, y := range ns {
+						agent.SetCollisionVelocity(a, db.agents[y], v)
+					}
+
+					// Second pass across neighbors forces the velocity to zero if
+					// a velocity has flip-flopped back into the forbidden zone of
+					// another agent.
+					for _, y := range ns {
+						agent.SetCollisionVelocityStrict(a, db.agents[y], v)
+					}
+
+					out <- result{
+						agent: a,
+						v:     v.V(),
+					}
+				}
+			}(in, out)
 		}
 
-		// Second pass across neighbors forces the velocity to zero if
-		// a velocity has flip-flopped back into the forbidden zone of
-		// another agent.
-		for _, y := range ns {
-			agent.SetCollisionVelocityStrict(a, db.agents[y], v)
-		}
+		wg.Wait()
+		close(out)
 
-		results = append(results, result{
-			agent: a,
-			v:     v.V(),
-		})
+	}(in, out)
+
+	for r := range out {
+		results = append(results, r)
 	}
 
 	return results
