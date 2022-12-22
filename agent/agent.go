@@ -169,8 +169,8 @@ func AABB(p vector.V, r float64) hyperrectangle.R {
 //	v := vector.M{0, 0}
 //	v.Copy(a.Velocity())
 //
-//	SetCollisionVector(a, b, v)
-//	SetCollisionVector(a, c, v)
+//	SetCollisionVelocity(a, b, v)
+//	SetCollisionVelocity(a, c, v)
 //
 // This allows us to generate a final velocity for agent a.
 func SetCollisionVelocity(a *A, b *A, v vector.M) {
