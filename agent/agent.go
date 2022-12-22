@@ -159,12 +159,9 @@ func SetCollisionVelocityStrict(a *A, b *A, v vector.M) {
 	buf.Copy(b.Position())
 	buf.Sub(a.Position())
 
-	buf.Unit()
-
 	// If the vectors are pointing in the same direction, then force the
 	// object to stop moving.
-	c := vector.Dot(buf.V(), v.V())
-	if c > 0 {
+	if c := vector.Dot(buf.V(), v.V()); c > 0 {
 		v.SetX(0)
 		v.SetY(0)
 	}
@@ -214,8 +211,7 @@ func SetCollisionVelocity(a *A, b *A, v vector.M) {
 
 	// If the vectors are pointing in the same direction, then force the
 	// object to stop moving.
-	c := vector.Dot(buf.V(), v.V())
-	if c > 0 {
+	if c := vector.Dot(buf.V(), v.V()); c > 0 {
 		buf.Scale(c)
 		v.Sub(buf.V())
 	}

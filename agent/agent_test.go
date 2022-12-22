@@ -10,6 +10,54 @@ import (
 	"github.com/downflux/go-geometry/2d/vector/polar"
 )
 
+func TestSetCollisionVelocityStrict(t *testing.T) {
+	type config struct {
+		name string
+		p    vector.V
+		qs   []vector.V
+		v    vector.V
+		want vector.V
+	}
+
+	configs := []config{
+		{
+			name: "Simple",
+			p:    vector.V{0, 0},
+			qs:   []vector.V{vector.V{0, 100}},
+			v:    vector.V{0, 2},
+			want: vector.V{0, 0},
+		},
+		{
+			name: "Simple/NoCollision/Perpendicular",
+			p:    vector.V{0, 0},
+			qs:   []vector.V{vector.V{100, 0}},
+			v:    vector.V{0, 2},
+			want: vector.V{0, 2},
+		},
+	}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			v := vector.M{0, 0}
+			v.Copy(c.v)
+
+			a := &A{
+				position: c.p.M(),
+			}
+			for _, q := range c.qs {
+				b := &A{
+					position: q.M(),
+				}
+				SetCollisionVelocityStrict(a, b, v)
+			}
+
+			if !vector.Within(v.V(), c.want) {
+				t.Errorf("SetCollisionVelocity() = %v, want = %v", v, c.want)
+			}
+		})
+	}
+}
+
 func TestSetVelocity(t *testing.T) {
 	type config struct {
 		name            string
