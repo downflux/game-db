@@ -244,21 +244,41 @@ func (db *DB) Tick(d time.Duration) {
 	db.bvhL.Lock()
 	defer db.bvhL.Unlock()
 
+	in := make(chan result, 256)
+	go func(ch chan<- result) {
+		for _, r := range db.generate() {
+			ch <- r
+		}
+		close(ch)
+	}(in)
+
 	t := float64(d) / float64(time.Second)
 
-	for _, r := range db.generate() {
-		agent.SetVelocity(r.agent, r.v.M())
+	var wg sync.WaitGroup
+	wg.Add(db.poolSize)
 
-		// N.B.: The velocity can be further reduced to
-		// zero here due to the physical limitations of
-		// the agent.
-		h := polar.V{1, r.agent.Heading().Theta()}
-		agent.SetHeading(r.agent, d, r.v.M(), h.M())
+	for i := 0; i < db.poolSize; i++ {
 
-		r.agent.Position().M().Add(vector.Scale(t, r.v))
-		r.agent.Heading().M().Copy(h)
+		go func(ch <-chan result) {
+			defer wg.Done()
+			for r := range ch {
+				agent.SetVelocity(r.agent, r.v.M())
+
+				// N.B.: The velocity can be further reduced to
+				// zero here due to the physical limitations of
+				// the agent.
+				h := polar.V{1, r.agent.Heading().Theta()}
+				agent.SetHeading(r.agent, d, r.v.M(), h.M())
+
+				r.agent.Position().M().Add(vector.Scale(t, r.v))
+				r.agent.Heading().M().Copy(h)
+			}
+		}(in)
 	}
 
+	wg.Wait()
+
+	// Concurrent BVH mutations is not supported.
 	for x, a := range db.agents {
 		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
 	}
