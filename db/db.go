@@ -211,11 +211,27 @@ func (db *DB) generate() []result {
 						agent.SetCollisionVelocity(a, db.agents[y], v)
 					}
 
-					// Second pass across neighbors forces the velocity to zero if
-					// a velocity has flip-flopped back into the forbidden zone of
-					// another agent.
-					for _, y := range ns {
-						agent.SetCollisionVelocityStrict(a, db.agents[y], v)
+					// Second pass across neighbors forces
+					// the velocity to zero if a velocity
+					// has flip-flopped back into the
+					// forbidden zone of another agent.
+					//
+					// Note that this flip-flop behavior is
+					// only a problem if there is more than
+					// one neighbor -- this actually allows
+					// us to natively do some crowd-control
+					// without higher-level pathing by
+					// letting the edges of a collision
+					// move out and gradually shrinking the
+					// collision radius.
+					//
+					// TODO(minkezhang): Take into account
+					// walls as additional input points
+					// here.
+					if len(ns) > 1 {
+						for _, y := range ns {
+							agent.SetCollisionVelocityStrict(a, db.agents[y], v)
+						}
 					}
 
 					out <- result{
