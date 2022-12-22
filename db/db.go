@@ -44,7 +44,7 @@ type DB struct {
 	poolSize int
 	counter  uint64
 
-	frame int  // DEBUG
+	frame int // DEBUG
 }
 
 func New(o O) *DB {
@@ -192,7 +192,7 @@ func (db *DB) generate() []result {
 					a.Position(),
 					b.Position(),
 				),
-			) < a.Radius() + b.Radius()
+			) < a.Radius()+b.Radius()
 
 			if colliding {
 				dp := vector.Sub(b.Position(), a.Position())
@@ -200,7 +200,7 @@ func (db *DB) generate() []result {
 				fmt.Printf("DEBUG(main.go): %v.P() = %v, %v.P() = %v, vin = %v\n", a.ID(), a.Position(), b.ID(), b.Position(), v)
 			}
 
-			agent.SetCollisionVelocity(a, b, v)
+			agent.SetCollisionVelocityStrict(a, b, v)
 
 			if colliding {
 				dp := vector.Sub(b.Position(), a.Position())

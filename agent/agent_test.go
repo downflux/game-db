@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"testing"
@@ -76,7 +75,6 @@ func rn(min, max float64) float64  { return min + rand.Float64()*(max-min) }
 func rv(min, max float64) vector.V { return vector.V{rn(min, max), rn(min, max)} }
 
 func TestSetCollisionVelocity(t *testing.T) {
-	const n = 0
 	type config struct {
 		name string
 		p    vector.V
@@ -154,60 +152,6 @@ func TestSetCollisionVelocity(t *testing.T) {
 			v:    vector.V{3, 1},
 			want: vector.V{0, 1},
 		},
-		// A = (0, 0)
-		// B = (1, 0)
-		// C = (math.Sqrt(3), 1)
-		// v = (1, 1)
-		//
-		// C lies π / 6 above the Y-axis.
-		// v lies π / 4 above the Y-axis.
-		{
-			name: "OrderInvariant/Custom",
-			p:    vector.V{0, 0},
-			qs: []vector.V{
-				vector.V{1, 0},
-				vector.V{math.Sqrt(3), 1},
-			},
-			v:    vector.V{1, 1},
-			want: vector.V{-math.Sqrt(3) / 4, 0.75},
-		},
-		{
-			name: "OrderInvariant/Custom/Inverse",
-			p:    vector.V{0, 0},
-			qs: []vector.V{
-				vector.V{math.Sqrt(3), 1},
-				vector.V{1, 0},
-			},
-			v:    vector.V{1, 1},
-			want: vector.V{-math.Sqrt(3) / 4, 0.75},
-		},
-	}
-
-	for i := 0; i < n; i++ {
-		const min, max = 0, 500
-		p := rv(min, max)
-		qs := []vector.V{rv(min, max), rv(min, max)}
-		v := rv(min, max)
-
-		want := vector.M{0, 0}
-		want.Copy(v)
-
-		for _, q := range qs {
-			SetCollisionVelocity(&A{
-				position: p.M(),
-			}, &A{
-				position: q.M(),
-			},
-				want,
-			)
-		}
-		configs = append(configs, config{
-			name: fmt.Sprintf("OrderInvariant/%v", i),
-			p:    p,
-			qs:   []vector.V{qs[1], qs[0]},
-			v:    v,
-			want: want.V(),
-		})
 	}
 
 	for _, c := range configs {
@@ -226,7 +170,6 @@ func TestSetCollisionVelocity(t *testing.T) {
 			}
 
 			if !vector.Within(v.V(), c.want) {
-				t.Errorf("DEBUG: %v, %v, %v", c.p, c.qs, c.v)
 				t.Errorf("SetCollisionVelocity() = %v, want = %v", v, c.want)
 			}
 		})
