@@ -43,6 +43,8 @@ type DB struct {
 
 	poolSize int
 	counter  uint64
+
+	frame int  // DEBUG
 }
 
 func New(o O) *DB {
@@ -78,7 +80,7 @@ func (db *DB) Insert(o agent.O) *agent.A {
 	defer db.bvhL.Unlock()
 
 	x := id.ID(db.counter)
-	db.counter++
+	db.counter += 1
 
 	a := agent.New(o)
 	agent.SetID(a, x)
@@ -182,7 +184,29 @@ func (db *DB) generate() []result {
 			),
 			agent.IsSquishableColliding,
 		) {
-			agent.SetCollisionVelocity(a, db.agents[y], v)
+			b := db.agents[y]
+
+			// DEBUG
+			colliding := vector.Magnitude(
+				vector.Sub(
+					a.Position(),
+					b.Position(),
+				),
+			) < a.Radius() + b.Radius()
+
+			if colliding {
+				dp := vector.Sub(b.Position(), a.Position())
+				fmt.Printf("DEBUG(main.go): Error(frame %v): %v and %v colliding! (d = %v)\n", db.frame, a.ID(), b.ID(), vector.Magnitude(dp))
+				fmt.Printf("DEBUG(main.go): %v.P() = %v, %v.P() = %v, vin = %v\n", a.ID(), a.Position(), b.ID(), b.Position(), v)
+			}
+
+			agent.SetCollisionVelocity(a, b, v)
+
+			if colliding {
+				dp := vector.Sub(b.Position(), a.Position())
+				c := vector.Dot(dp, v.V())
+				fmt.Printf("DEBUG(main.go): dp = %v, vout = %v, dp * vout = %v > 0 = %v\n", dp, v, c, c > 0)
+			}
 		}
 
 		results = append(results, result{
@@ -218,6 +242,8 @@ func (db *DB) Tick(d time.Duration) {
 	for x, a := range db.agents {
 		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
 	}
+
+	db.frame += 1
 }
 
 type result struct {

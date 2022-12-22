@@ -143,7 +143,19 @@ func AABB(p vector.V, r float64) hyperrectangle.R {
 	)
 }
 
-// CollisionVelocity generates a velocity vector for two colliding objects by
+// SetCollisionVelocity generates a velocity vector for two colliding objects.
+//
+// The input velocity vector v is a velocity buffer for the first agent a; if
+// this vector points towards the neighbor b, then the vector as a whole is set
+// to zero -- that is, a is forced to stop for the current tick.
+//
+// N.B.: An alternative strategy for setting the collision velocity is to
+// attempt to remove the componenty of the velocity buffer which is parallel to
+// the other agent. However, experimentally this fails for a dense system where
+// an agent is touching multiple neighbors. In this case, the velocity flipping
+// actually could flip back into another agent.
+// experie
+// We can alternatively try to set the
 // setting the normal components to zero. This does not model, and does not
 // intend to model, an inelastic collision -- this is the final check we do to
 // avoid odd rendering behavior where a unit is forced into a collision.
@@ -178,14 +190,15 @@ func SetCollisionVelocity(a *A, b *A, v vector.M) {
 	buf := vector.M{0, 0}
 	buf.Copy(b.Position())
 	buf.Sub(a.Position())
+
 	buf.Unit()
 
-	// If the vectors are pointing in the same direction, then remove the
-	// offending collision component.
+	// If the vectors are pointing in the same direction, then force the
+	// object to stop moving.
 	c := vector.Dot(buf.V(), v.V())
 	if c > 0 {
-		buf.Scale(c)
-		v.Sub(buf.V())
+		v.SetX(0)
+		v.SetY(0)
 	}
 }
 
