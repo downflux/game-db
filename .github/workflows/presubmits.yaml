@@ -19,8 +19,8 @@ jobs:
       with:
         go-version: 1.19
 
-    - name: Build github.com/downflux/game-db
-      run: go vet github.com/downflux/game-db/...
+    - name: Build github.com/downflux/go-collisions
+      run: go vet github.com/downflux/go-collisions/...
 
-    - name: Test github.com/downflux/game-db
-      run: go test github.com/downflux/game-db/... -bench . -benchmem
+    - name: Test github.com/downflux/go-collisions
+      run: go test github.com/downflux/go-collisions/... -bench . -benchmem
