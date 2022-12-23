@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/downflux/go-bvh/id"
@@ -103,6 +104,10 @@ func SetID(a *A, x id.ID) { a.id = x }
 
 // New is only called by internal libraries.
 func New(o O) *A {
+	if !mask.Validate(o.Mask) {
+		panic(fmt.Sprintf("cannot create agent: invalid mask %v", o.Mask))
+	}
+
 	p := vector.V([]float64{0, 0}).M()
 	p.Copy(o.Position)
 	v := vector.V([]float64{0, 0}).M()

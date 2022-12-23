@@ -35,6 +35,9 @@ const (
 	SizeCheck = MSizeProjectile | MSizeSmall | MSizeMedium | MSizeLarge
 )
 
+// Validate ensures the input mask is valid.
+//
+// TODO(minkezhang): Ensure e.g. a size must be set.
 func Validate(m M) bool {
 	n := 0
 	if m&MSizeProjectile != 0 {
