@@ -143,6 +143,56 @@ func TestTick(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
+				Position: vector.V{0, 0},
+				Velocity: vector.V{1, 1},
+				Heading:  polar.V{1, math.Pi / 4},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			b := collider.Insert(agent.O{
+				Position: vector.V{0, 1},
+				Velocity: vector.V{0, -1},
+				Heading:  polar.V{1, 3 * math.Pi / 2},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			c := collider.Insert(agent.O{
+				Position: vector.V{0, -1},
+				Velocity: vector.V{0, 1},
+				Heading:  polar.V{1, math.Pi / 2},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			d := collider.Insert(agent.O{
+				Position: vector.V{1, 0},
+				Velocity: vector.V{-1, 0},
+				Heading:  polar.V{1, math.Pi},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			e := collider.Insert(agent.O{
+				Position: vector.V{-1, 0},
+				Velocity: vector.V{1, 0},
+				Heading:  polar.V{1, 2 * math.Pi},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			return config{
+				name:     "Stuck",
+				collider: collider,
+				d:        100 * time.Millisecond,
+				want: map[id.ID]vector.V{
+					a.ID(): vector.V{0, 0},
+					b.ID(): vector.V{0, 1},
+					c.ID(): vector.V{0, -1},
+					d.ID(): vector.V{1, 0},
+					e.ID(): vector.V{-1, 0},
+				},
+			}
+		}(),
+		func() config {
+			collider := New(DefaultO)
+			a := collider.Insert(agent.O{
 				Position:    vector.V{10, 10},
 				Velocity:    vector.V{1, 1},
 				MaxVelocity: math.Sqrt(2),
