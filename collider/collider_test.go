@@ -1,4 +1,4 @@
-package simulation
+package collider
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/downflux/go-bvh/id"
-	"github.com/downflux/go-collisions/agent"
-	"github.com/downflux/go-collisions/agent/mask"
+	"github.com/downflux/go-collider/agent"
+	"github.com/downflux/go-collider/agent/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"

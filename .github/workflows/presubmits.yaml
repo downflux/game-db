@@ -19,8 +19,8 @@ jobs:
       with:
         go-version: 1.19
 
-    - name: Build github.com/downflux/go-collisions
-      run: go vet github.com/downflux/go-collisions/...
+    - name: Build github.com/downflux/go-collider
+      run: go vet github.com/downflux/go-collider/...
 
-    - name: Test github.com/downflux/go-collisions
-      run: go test github.com/downflux/go-collisions/... -bench . -benchmem
+    - name: Test github.com/downflux/go-collider
+      run: go test github.com/downflux/go-collider/... -bench . -benchmem

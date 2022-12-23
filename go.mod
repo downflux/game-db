@@ -1,4 +1,4 @@
-module github.com/downflux/go-collisions
+module github.com/downflux/go-collider
 
 go 1.19
 
