@@ -191,9 +191,9 @@ func (c *C) generate() []result {
 				defer wg.Done()
 				for a := range in {
 					v := vector.M{0, 0}
-					// TODO(minkezhang): Investigate what happens if
-					// we change this velocity to the nearest
-					// 8-directional alignment.
+					// TODO(minkezhang): Investigate what
+					// happens if we change this velocity to
+					// the nearest 8-directional alignment.
 					v.Copy(a.Velocity())
 
 					ns := c.neighbors(
@@ -205,8 +205,9 @@ func (c *C) generate() []result {
 						agent.IsSquishableColliding,
 					)
 
-					// Check for collisions which the agent cares
-					// about, e.g. care about squishability.
+					// Check for collisions which the agent
+					// cares about, e.g. care about
+					// squishability.
 					for _, y := range ns {
 						agent.SetCollisionVelocity(a, c.agents[y], v)
 					}
