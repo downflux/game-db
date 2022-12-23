@@ -32,7 +32,7 @@ type O struct {
 	PoolSize  int
 }
 
-type DB struct {
+type C struct {
 	agents      map[id.ID]*agent.A
 	projectiles map[id.ID]*agent.A
 
@@ -45,11 +45,11 @@ type DB struct {
 	counter  uint64
 }
 
-func New(o O) *DB {
+func New(o O) *C {
 	if o.PoolSize < 2 {
 		panic(fmt.Sprintf("PoolSize specified %v is smaller than the minimum value of 2", o.PoolSize))
 	}
-	return &DB{
+	return &C{
 		agents:      make(map[id.ID]*agent.A, 1024),
 		projectiles: make(map[id.ID]*agent.A, 1024),
 		bvh: bvh.New(bvh.O{
@@ -61,36 +61,36 @@ func New(o O) *DB {
 	}
 }
 
-func (db *DB) Delete(x id.ID) {
-	db.bvhL.Lock()
-	defer db.bvhL.Unlock()
+func (c *C) Delete(x id.ID) {
+	c.bvhL.Lock()
+	defer c.bvhL.Unlock()
 
-	a := db.getOrDie(x)
+	a := c.getOrDie(x)
 	if a.IsProjectile() {
-		delete(db.projectiles, x)
+		delete(c.projectiles, x)
 	} else {
-		delete(db.agents, x)
-		if err := db.bvh.Remove(x); err != nil {
+		delete(c.agents, x)
+		if err := c.bvh.Remove(x); err != nil {
 			panic(fmt.Sprintf("cannot delete agent: %v", err))
 		}
 	}
 }
 
-func (db *DB) Insert(o agent.O) *agent.A {
-	db.bvhL.Lock()
-	defer db.bvhL.Unlock()
+func (c *C) Insert(o agent.O) *agent.A {
+	c.bvhL.Lock()
+	defer c.bvhL.Unlock()
 
-	x := id.ID(db.counter)
-	db.counter += 1
+	x := id.ID(c.counter)
+	c.counter += 1
 
 	a := agent.New(o)
 	agent.SetID(a, x)
 
 	if a.IsProjectile() {
-		db.projectiles[x] = a
+		c.projectiles[x] = a
 	} else {
-		db.agents[x] = a
-		if err := db.bvh.Insert(x, agent.AABB(a.Position(), a.Radius())); err != nil {
+		c.agents[x] = a
+		if err := c.bvh.Insert(x, agent.AABB(a.Position(), a.Radius())); err != nil {
 			panic(fmt.Sprintf("cannot insert agent: %v", err))
 		}
 	}
@@ -99,19 +99,19 @@ func (db *DB) Insert(o agent.O) *agent.A {
 }
 
 // Neighbors returns a list of neighboring agents to the input.
-func (db *DB) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
-	db.bvhL.RLock()
-	defer db.bvhL.RUnlock()
+func (c *C) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
+	c.bvhL.RLock()
+	defer c.bvhL.RUnlock()
 
-	return db.neighbors(x, q, filter)
+	return c.neighbors(x, q, filter)
 }
 
-func (db *DB) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
-	a := db.getOrDie(x)
-	broadphase := db.bvh.BroadPhase(q)
+func (c *C) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
+	a := c.getOrDie(x)
+	broadphase := c.bvh.BroadPhase(q)
 	collisions := make([]id.ID, 0, len(broadphase))
 	for _, y := range broadphase {
-		b := db.agents[y]
+		b := c.agents[y]
 		if filter(a, b) {
 			collisions = append(collisions, y)
 		}
@@ -119,17 +119,17 @@ func (db *DB) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) 
 	return collisions
 }
 
-func (db *DB) GetOrDie(x id.ID) *agent.A {
-	db.bvhL.RLock()
-	defer db.bvhL.RUnlock()
+func (c *C) GetOrDie(x id.ID) *agent.A {
+	c.bvhL.RLock()
+	defer c.bvhL.RUnlock()
 
-	return db.getOrDie(x)
+	return c.getOrDie(x)
 }
 
-func (db *DB) getOrDie(x id.ID) *agent.A {
-	a, ok := db.agents[x]
+func (c *C) getOrDie(x id.ID) *agent.A {
+	a, ok := c.agents[x]
 	if !ok {
-		a = db.projectiles[x]
+		a = c.projectiles[x]
 	}
 	if a == nil {
 		panic(fmt.Sprintf("cannot find agent %v", x))
@@ -137,35 +137,35 @@ func (db *DB) getOrDie(x id.ID) *agent.A {
 	return a
 }
 
-func (db *DB) SetPosition(x id.ID, v vector.V) {
-	db.bvhL.Lock()
-	defer db.bvhL.Unlock()
+func (c *C) SetPosition(x id.ID, v vector.V) {
+	c.bvhL.Lock()
+	defer c.bvhL.Unlock()
 
-	a := db.getOrDie(x)
+	a := c.getOrDie(x)
 	a.Position().M().Copy(v)
 
 	if !a.IsProjectile() {
-		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
+		c.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
 	}
 }
 
-func (db *DB) SetVelocity(x id.ID, v vector.V) {
+func (c *C) SetVelocity(x id.ID, v vector.V) {
 	// SetVelocity does not mutate the BVH, but the central Tick function
 	// does need to read the velocity.
-	db.bvhL.RLock()
-	defer db.bvhL.RUnlock()
+	c.bvhL.RLock()
+	defer c.bvhL.RUnlock()
 
-	db.getOrDie(x).Velocity().M().Copy(v)
+	c.getOrDie(x).Velocity().M().Copy(v)
 }
 
-func (db *DB) generate() []result {
+func (c *C) generate() []result {
 	results := make([]result, 0, 256)
 
 	in := make(chan *agent.A, 256)
 	out := make(chan result, 256)
 
 	go func(ch chan<- *agent.A) {
-		for _, a := range db.agents {
+		for _, a := range c.agents {
 			ch <- a
 		}
 		close(ch)
@@ -175,10 +175,10 @@ func (db *DB) generate() []result {
 
 		var wg sync.WaitGroup
 
-		wg.Add(db.poolSize)
+		wg.Add(c.poolSize)
 		go func(ch chan<- result) {
 			defer wg.Done()
-			for _, a := range db.projectiles {
+			for _, a := range c.projectiles {
 				out <- result{
 					agent: a,
 					v:     a.Velocity(),
@@ -186,7 +186,7 @@ func (db *DB) generate() []result {
 			}
 		}(out)
 
-		for i := 0; i < db.poolSize-1; i++ {
+		for i := 0; i < c.poolSize-1; i++ {
 			go func(in <-chan *agent.A, out chan<- result) {
 				defer wg.Done()
 				for a := range in {
@@ -196,7 +196,7 @@ func (db *DB) generate() []result {
 					// 8-directional alignment.
 					v.Copy(a.Velocity())
 
-					ns := db.neighbors(
+					ns := c.neighbors(
 						a.ID(),
 						agent.AABB(
 							a.Position(),
@@ -208,7 +208,7 @@ func (db *DB) generate() []result {
 					// Check for collisions which the agent cares
 					// about, e.g. care about squishability.
 					for _, y := range ns {
-						agent.SetCollisionVelocity(a, db.agents[y], v)
+						agent.SetCollisionVelocity(a, c.agents[y], v)
 					}
 
 					// Second pass across neighbors forces
@@ -230,7 +230,7 @@ func (db *DB) generate() []result {
 					// here.
 					if len(ns) > 1 {
 						for _, y := range ns {
-							agent.SetCollisionVelocityStrict(a, db.agents[y], v)
+							agent.SetCollisionVelocityStrict(a, c.agents[y], v)
 						}
 					}
 
@@ -256,13 +256,13 @@ func (db *DB) generate() []result {
 
 // Tick advances the world by one tick. During this execution, agents must not
 // be modified by the user.
-func (db *DB) Tick(d time.Duration) {
-	db.bvhL.Lock()
-	defer db.bvhL.Unlock()
+func (c *C) Tick(d time.Duration) {
+	c.bvhL.Lock()
+	defer c.bvhL.Unlock()
 
 	in := make(chan result, 256)
 	go func(ch chan<- result) {
-		for _, r := range db.generate() {
+		for _, r := range c.generate() {
 			ch <- r
 		}
 		close(ch)
@@ -271,9 +271,9 @@ func (db *DB) Tick(d time.Duration) {
 	t := float64(d) / float64(time.Second)
 
 	var wg sync.WaitGroup
-	wg.Add(db.poolSize)
+	wg.Add(c.poolSize)
 
-	for i := 0; i < db.poolSize; i++ {
+	for i := 0; i < c.poolSize; i++ {
 
 		go func(ch <-chan result) {
 			defer wg.Done()
@@ -295,8 +295,8 @@ func (db *DB) Tick(d time.Duration) {
 	wg.Wait()
 
 	// Concurrent BVH mutations is not supported.
-	for x, a := range db.agents {
-		db.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
+	for x, a := range c.agents {
+		c.bvh.Update(x, agent.AABB(a.Position(), a.Radius()))
 	}
 }
 
