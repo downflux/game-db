@@ -61,21 +61,8 @@ func New(o O) *C {
 	}
 }
 
-func (c *C) Delete(x id.ID) {
-	c.bvhL.Lock()
-	defer c.bvhL.Unlock()
-
-	a := c.getOrDie(x)
-	if a.IsProjectile() {
-		delete(c.projectiles, x)
-	} else {
-		delete(c.agents, x)
-		if err := c.bvh.Remove(x); err != nil {
-			panic(fmt.Sprintf("cannot delete agent: %v", err))
-		}
-	}
-}
-
+// Insert creates a new agent and adds to the scene. This function is executed
+// serially.
 func (c *C) Insert(o agent.O) *agent.A {
 	c.bvhL.Lock()
 	defer c.bvhL.Unlock()
@@ -98,7 +85,27 @@ func (c *C) Insert(o agent.O) *agent.A {
 	return a
 }
 
-// Neighbors returns a list of neighboring agents to the input.
+// Delete removes an agent from the scene. This function is executed serially.
+func (c *C) Delete(x id.ID) {
+	c.bvhL.Lock()
+	defer c.bvhL.Unlock()
+
+	a := c.getOrDie(x)
+	if a.IsProjectile() {
+		delete(c.projectiles, x)
+	} else {
+		delete(c.agents, x)
+		if err := c.bvh.Remove(x); err != nil {
+			panic(fmt.Sprintf("cannot delete agent: %v", err))
+		}
+	}
+}
+
+// Neighbors returns a list of neighboring agents to the input. The input filter
+// is a narrow phase filter function. The function returns true if the two
+// agents are found to be in conflict.
+//
+// This function may be called concurrently.
 func (c *C) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
 	c.bvhL.RLock()
 	defer c.bvhL.RUnlock()
@@ -119,6 +126,8 @@ func (c *C) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bo
 	return collisions
 }
 
+// GetOrDie returns an agent from the scene. This function may be called
+// concurrently.
 func (c *C) GetOrDie(x id.ID) *agent.A {
 	c.bvhL.RLock()
 	defer c.bvhL.RUnlock()
@@ -137,6 +146,11 @@ func (c *C) getOrDie(x id.ID) *agent.A {
 	return a
 }
 
+// SetPosition sets the agent's position directly. This is not part of a normal
+// user's calling pattern -- the user should default to the collision resolution
+// library's Tick() to set the position indirectly. This functino is used for
+// when a user wants to specify an e.g. teleportation event. This function may
+// be called concurrently.
 func (c *C) SetPosition(x id.ID, v vector.V) {
 	c.bvhL.Lock()
 	defer c.bvhL.Unlock()
@@ -149,6 +163,9 @@ func (c *C) SetPosition(x id.ID, v vector.V) {
 	}
 }
 
+// SetVelocity directly sets the agent's new velocity vector. This function is
+// called when an agent's goal vector is updated. This function may be called
+// concurrently.
 func (c *C) SetVelocity(x id.ID, v vector.V) {
 	// SetVelocity does not mutate the BVH, but the central Tick function
 	// does need to read the velocity.
