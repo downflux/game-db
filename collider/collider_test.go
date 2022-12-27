@@ -29,7 +29,7 @@ func rv(min, max float64) vector.V {
 	}
 }
 
-func TestNeighbors(t *testing.T) {
+func TestQuery(t *testing.T) {
 	type config struct {
 		name     string
 		collider *C
@@ -123,9 +123,11 @@ func TestNeighbors(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
-			got := c.collider.neighbors(c.x, c.q, agent.IsSquishableColliding)
+			got := c.collider.query(c.q, func(b *agent.A) bool {
+				return agent.IsSquishableColliding(c.collider.getOrDie(c.x), b)
+			})
 			if diff := cmp.Diff(c.want, got, cmpopts.SortSlices(func(a, b id.ID) bool { return a < b })); diff != "" {
-				t.Errorf("neighbors() mismatch (-want +got):\n%v", diff)
+				t.Errorf("query() mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}

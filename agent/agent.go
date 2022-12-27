@@ -12,7 +12,6 @@ import (
 	"github.com/downflux/go-geometry/epsilon"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
-	fmask "github.com/downflux/go-collider/feature/mask"
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 

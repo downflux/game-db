@@ -138,26 +138,26 @@ func (c *C) Delete(x id.ID) {
 	}
 }
 
-// Neighbors returns a list of neighboring agents to the input. The input filter
-// is a narrow phase filter function. The function returns true if the two
-// agents are found to be in conflict.
+// Query returns a list of neighboring agents to the input. The input filter is
+// a narrow phase filter function. The function returns true if the two agents
+// are found to be in conflict.
 //
 // This function may be called concurrently.
-func (c *C) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
+func (c *C) Query(q hyperrectangle.R, filter func(a *agent.A) bool) []id.ID {
 	c.bvhL.RLock()
 	defer c.bvhL.RUnlock()
 
-	return c.neighbors(x, q, filter)
+	return c.query(q, filter)
 }
 
-func (c *C) NeighborFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []id.ID {
+func (c *C) QueryFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []id.ID {
 	c.bvhL.RLock()
 	defer c.bvhL.RUnlock()
 
-	return c.neighborFeatures(q, filter)
+	return c.queryFeatures(q, filter)
 }
 
-func (c *C) neighborFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []id.ID {
+func (c *C) queryFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []id.ID {
 	broadphase := c.bvh.BroadPhase(q)
 	collisions := make([]id.ID, 0, len(broadphase))
 	for _, x := range broadphase {
@@ -170,14 +170,13 @@ func (c *C) neighborFeatures(q hyperrectangle.R, filter func(f *feature.F) bool)
 	return collisions
 }
 
-func (c *C) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
-	a := c.getOrDie(x)
+func (c *C) query(q hyperrectangle.R, filter func(a *agent.A) bool) []id.ID {
 	broadphase := c.bvh.BroadPhase(q)
 	collisions := make([]id.ID, 0, len(broadphase))
-	for _, y := range broadphase {
-		b := c.agents[y]
-		if filter(a, b) {
-			collisions = append(collisions, y)
+	for _, x := range broadphase {
+		a := c.agents[x]
+		if filter(a) {
+			collisions = append(collisions, x)
 		}
 	}
 	return collisions
@@ -286,13 +285,14 @@ func (c *C) generate() []result {
 					// the nearest 8-directional alignment.
 					v.Copy(a.Velocity())
 
-					ns := c.neighbors(
-						a.ID(),
+					ns := c.query(
 						agent.AABB(
 							a.Position(),
 							a.Radius(),
 						),
-						agent.IsSquishableColliding,
+						func(b *agent.A) bool {
+							return agent.IsSquishableColliding(a, b)
+						},
 					)
 
 					// Check for collisions which the agent
