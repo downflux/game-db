@@ -9,6 +9,7 @@ import (
 	"github.com/downflux/go-bvh/container"
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-collider/agent"
+	"github.com/downflux/go-collider/feature"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
@@ -37,9 +38,11 @@ type C struct {
 	projectiles map[id.ID]*agent.A
 
 	// TODO(minkezhang): Add wall collision detection.
+	features map[id.ID]*feature.F
 
-	bvhL sync.RWMutex
-	bvh  container.C
+	bvhL        sync.RWMutex
+	bvh         container.C
+	bvhFeatures container.C
 
 	poolSize int
 	counter  uint64
@@ -52,12 +55,46 @@ func New(o O) *C {
 	return &C{
 		agents:      make(map[id.ID]*agent.A, 1024),
 		projectiles: make(map[id.ID]*agent.A, 1024),
+		features:    make(map[id.ID]*feature.F, 1024),
 		bvh: bvh.New(bvh.O{
 			K:         2,
 			LeafSize:  o.LeafSize,
 			Tolerance: o.Tolerance,
 		}),
+		bvhFeatures: bvh.New(bvh.O{
+			K:         2,
+			LeafSize:  o.LeafSize,
+			Tolerance: 1,
+		}),
 		poolSize: o.PoolSize,
+	}
+}
+
+func (c *C) InsertFeature(o feature.O) *feature.F {
+	c.bvhL.Lock()
+	defer c.bvhL.Unlock()
+
+	x := id.ID(c.counter)
+	c.counter += 1
+
+	f := feature.New(o)
+	feature.SetID(f, x)
+
+	if err := c.bvhFeatures.Insert(x, f.AABB()); err != nil {
+		panic(fmt.Sprintf("cannot insert feature: %v", err))
+	}
+
+	return f
+}
+
+func (c *C) DeleteFeature(x id.ID) {
+	c.bvhL.Lock()
+	defer c.bvhL.Unlock()
+
+	f := c.getFeatureOrDie(x)
+	delete(c.features, f.ID())
+	if err := c.bvhFeatures.Remove(f.ID()); err != nil {
+		panic(fmt.Sprintf("cannot delete feature: %v", err))
 	}
 }
 
@@ -113,6 +150,15 @@ func (c *C) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bo
 	return c.neighbors(x, q, filter)
 }
 
+func (c *C) NeighborFeatures(q hyperrectangle.R) []id.ID {
+	c.bvhL.RLock()
+	defer c.bvhL.RUnlock()
+
+	return c.neighborFeatures(q)
+}
+
+func (c *C) neighborFeatures(q hyperrectangle.R) []id.ID { return c.bvhFeatures.BroadPhase(q) }
+
 func (c *C) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
 	a := c.getOrDie(x)
 	broadphase := c.bvh.BroadPhase(q)
@@ -126,6 +172,13 @@ func (c *C) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bo
 	return collisions
 }
 
+func (c *C) GetFeatureOrDie(x id.ID) *feature.F {
+	c.bvhL.RLock()
+	defer c.bvhL.RUnlock()
+
+	return c.getFeatureOrDie(x)
+}
+
 // GetOrDie returns an agent from the scene. This function may be called
 // concurrently.
 func (c *C) GetOrDie(x id.ID) *agent.A {
@@ -133,6 +186,15 @@ func (c *C) GetOrDie(x id.ID) *agent.A {
 	defer c.bvhL.RUnlock()
 
 	return c.getOrDie(x)
+}
+
+func (c *C) getFeatureOrDie(x id.ID) *feature.F {
+	f, ok := c.features[x]
+	if !ok {
+		panic(fmt.Sprintf("cannot find feature %v", x))
+	}
+
+	return f
 }
 
 func (c *C) getOrDie(x id.ID) *agent.A {
