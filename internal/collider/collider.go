@@ -15,11 +15,6 @@ func IsColliding(a *agent.A, b *agent.A) bool {
 		return false
 	}
 
-	r := a.Radius() + b.Radius()
-	if vector.SquaredMagnitude(vector.Sub(a.Position(), b.Position())) > r*r {
-		return false
-	}
-
 	m, n := a.Mask(), b.Mask()
 	if (m|n)&mask.MSizeProjectile != 0 {
 		return false
@@ -29,15 +24,16 @@ func IsColliding(a *agent.A, b *agent.A) bool {
 	if (m^n)&mask.MTerrainAir == mask.MTerrainAir {
 		return false
 	}
+
+	r := a.Radius() + b.Radius()
+	if vector.SquaredMagnitude(vector.Sub(a.Position(), b.Position())) > r*r {
+		return false
+	}
 	return true
 
 }
 
 func IsSquishableColliding(a *agent.A, b *agent.A) bool {
-	if a.ID() == b.ID() {
-		return false
-	}
-
 	if IsColliding(a, b) {
 		// TODO(minkezhang): Check for team.
 		if a.Mask()&mask.SizeCheck > b.Mask()&mask.SizeCheck {
