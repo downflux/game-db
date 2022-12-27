@@ -11,6 +11,7 @@ import (
 	"github.com/downflux/go-collider/agent"
 	"github.com/downflux/go-collider/feature"
 	"github.com/downflux/go-collider/internal/collider"
+	"github.com/downflux/go-collider/internal/kinematics"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
@@ -293,7 +294,7 @@ func (c *C) generate() []result {
 					// cares about, e.g. care about
 					// squishability.
 					for _, y := range ns {
-						agent.SetCollisionVelocity(a, c.agents[y], v)
+						kinematics.SetCollisionVelocity(a, c.agents[y], v)
 					}
 
 					// Second pass across neighbors forces
@@ -315,7 +316,7 @@ func (c *C) generate() []result {
 					// here.
 					if len(ns) > 1 {
 						for _, y := range ns {
-							agent.SetCollisionVelocityStrict(a, c.agents[y], v)
+							kinematics.SetCollisionVelocityStrict(a, c.agents[y], v)
 						}
 					}
 
@@ -369,7 +370,7 @@ func (c *C) Tick(d time.Duration) {
 				// zero here due to the physical limitations of
 				// the agent.
 				h := polar.V{1, r.agent.Heading().Theta()}
-				agent.SetHeading(r.agent, d, r.v.M(), h.M())
+				kinematics.SetHeading(r.agent, d, r.v.M(), h.M())
 
 				r.agent.Position().M().Add(vector.Scale(t, r.v))
 				r.agent.Heading().M().Copy(h)
