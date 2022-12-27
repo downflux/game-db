@@ -2,6 +2,7 @@ package feature
 
 import (
 	"github.com/downflux/go-bvh/id"
+	"github.com/downflux/go-collider/feature/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
@@ -12,16 +13,18 @@ type O struct {
 	Min vector.V
 	Max vector.V
 
-	// TODO(minkezhang): Add mask.
+	Mask mask.M
 }
 
 type F struct {
 	id   id.ID
 	aabb hyperrectangle.R
+	mask mask.M
 }
 
 func (f *F) ID() id.ID              { return f.id }
 func (f *F) AABB() hyperrectangle.R { return f.aabb }
+func (f *F) Mask() mask.M           { return f.mask }
 
 // SetID is only called by internal libraries. This function must not be invoked
 // by external users.
