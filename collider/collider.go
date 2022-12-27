@@ -38,9 +38,7 @@ type O struct {
 type C struct {
 	agents      map[id.ID]*agent.A
 	projectiles map[id.ID]*agent.A
-
-	// TODO(minkezhang): Add wall collision detection.
-	features map[id.ID]*feature.F
+	features    map[id.ID]*feature.F
 
 	bvhL        sync.RWMutex
 	bvh         container.C
