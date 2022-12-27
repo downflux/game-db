@@ -11,6 +11,8 @@ import (
 type O struct {
 	Min vector.V
 	Max vector.V
+
+	// TODO(minkezhang): Add mask.
 }
 
 type F struct {
