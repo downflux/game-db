@@ -160,7 +160,7 @@ func (c *C) QueryFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []
 }
 
 func (c *C) queryFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []id.ID {
-	broadphase := c.bvh.BroadPhase(q)
+	broadphase := c.bvhFeatures.BroadPhase(q)
 	collisions := make([]id.ID, 0, len(broadphase))
 	for _, x := range broadphase {
 		f := c.features[x]
@@ -289,12 +289,23 @@ func (c *C) generate() []result {
 
 					aabb := agent.AABB(a.Position(), a.Radius())
 					ns := c.query(aabb, func(b *agent.A) bool { return collider.IsSquishableColliding(a, b) })
+					fs := c.queryFeatures(aabb, func(f *feature.F) bool { return collider.IsCollidingFeature(a, f) })
+
+					for _, y := range fs {
+						kinematics.SetFeatureCollisionVelocity(a, c.features[y], v)
+					}
 
 					// Check for collisions which the agent
 					// cares about, e.g. care about
 					// squishability.
 					for _, y := range ns {
 						kinematics.SetCollisionVelocity(a, c.agents[y], v)
+					}
+
+					// Second pass ensures agent is not
+					// colliding with any static features.
+					for _, y := range fs {
+						kinematics.SetFeatureCollisionVelocityStrict(a, c.features[y], v)
 					}
 
 					// Second pass across neighbors forces
@@ -310,10 +321,6 @@ func (c *C) generate() []result {
 					// letting the edges of a collision
 					// move out and gradually shrinking the
 					// collision radius.
-					//
-					// TODO(minkezhang): Take into account
-					// walls as additional input points
-					// here.
 					if len(ns) > 1 {
 						for _, y := range ns {
 							kinematics.SetCollisionVelocityStrict(a, c.agents[y], v)
@@ -360,7 +367,6 @@ func (c *C) Tick(d time.Duration) {
 	wg.Add(c.poolSize)
 
 	for i := 0; i < c.poolSize; i++ {
-
 		go func(ch <-chan result) {
 			defer wg.Done()
 			for r := range ch {
