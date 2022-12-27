@@ -10,6 +10,7 @@ import (
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-collider/agent"
 	"github.com/downflux/go-collider/feature"
+	"github.com/downflux/go-collider/internal/collider"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
@@ -285,15 +286,8 @@ func (c *C) generate() []result {
 					// the nearest 8-directional alignment.
 					v.Copy(a.Velocity())
 
-					ns := c.query(
-						agent.AABB(
-							a.Position(),
-							a.Radius(),
-						),
-						func(b *agent.A) bool {
-							return agent.IsSquishableColliding(a, b)
-						},
-					)
+					aabb := agent.AABB(a.Position(), a.Radius())
+					ns := c.query(aabb, func(b *agent.A) bool { return collider.IsSquishableColliding(a, b) })
 
 					// Check for collisions which the agent
 					// cares about, e.g. care about

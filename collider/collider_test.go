@@ -9,7 +9,9 @@ import (
 
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-collider/agent"
-	"github.com/downflux/go-collider/agent/mask"
+	"github.com/downflux/go-collider/feature"
+	"github.com/downflux/go-collider/internal/collider"
+	"github.com/downflux/go-collider/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
@@ -26,6 +28,29 @@ func rv(min, max float64) vector.V {
 	return vector.V{
 		rn(min, max),
 		rn(min, max),
+	}
+}
+
+func TestQueryFeatures(t *testing.T) {
+	type config struct {
+		name     string
+		collider *C
+		x        id.ID
+		q        hyperrectangle.R
+		want     []id.ID
+	}
+
+	configs := []config{}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			got := c.collider.QueryFeatures(c.q, func(f *feature.F) bool {
+				return collider.IsCollidingFeature(c.collider.getOrDie(c.x), f)
+			})
+			if diff := cmp.Diff(c.want, got, cmpopts.SortSlices(func(a, b id.ID) bool { return a < b })); diff != "" {
+				t.Errorf("QueryFeatures() mismatch (-want +got):\n%v", diff)
+			}
+		})
 	}
 }
 
@@ -123,8 +148,8 @@ func TestQuery(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
-			got := c.collider.query(c.q, func(b *agent.A) bool {
-				return agent.IsSquishableColliding(c.collider.getOrDie(c.x), b)
+			got := c.collider.Query(c.q, func(b *agent.A) bool {
+				return collider.IsSquishableColliding(c.collider.getOrDie(c.x), b)
 			})
 			if diff := cmp.Diff(c.want, got, cmpopts.SortSlices(func(a, b id.ID) bool { return a < b })); diff != "" {
 				t.Errorf("query() mismatch (-want +got):\n%v", diff)

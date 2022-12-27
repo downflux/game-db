@@ -2,7 +2,7 @@ package feature
 
 import (
 	"github.com/downflux/go-bvh/id"
-	"github.com/downflux/go-collider/feature/mask"
+	"github.com/downflux/go-collider/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 

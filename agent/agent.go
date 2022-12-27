@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/downflux/go-bvh/id"
-	"github.com/downflux/go-collider/agent/mask"
 	"github.com/downflux/go-collider/feature"
+	"github.com/downflux/go-collider/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
@@ -54,50 +54,13 @@ type A struct {
 
 func (a *A) ID() id.ID { return a.id }
 
+func (a *A) Mask() mask.M       { return a.mask }
 func (a *A) Position() vector.V { return a.position.V() }
 func (a *A) Velocity() vector.V { return a.velocity.V() }
 func (a *A) Radius() float64    { return a.radius }
 func (a *A) Heading() polar.V   { return a.heading.V() }
 
 func (a *A) IsProjectile() bool { return a.mask&mask.MSizeProjectile != 0 }
-
-func IsSquishableColliding(a *A, b *A) bool {
-	if a.id == b.id {
-		return false
-	}
-
-	if IsColliding(a, b) {
-		// TODO(minkezhang): Check for team.
-		if a.mask&mask.SizeCheck > b.mask&mask.SizeCheck {
-			return false
-		}
-		return true
-	}
-	return false
-}
-
-// IsColliding checks if two agents are actually physically overlapping. This
-// does not care about the extra logic for e.g. squishing.
-func IsColliding(a *A, b *A) bool {
-	if a.id == b.id {
-		return false
-	}
-
-	r := a.Radius() + b.Radius()
-	if vector.SquaredMagnitude(vector.Sub(a.Position(), b.Position())) > r*r {
-		return false
-	}
-
-	if (a.mask|b.mask)&mask.MSizeProjectile != 0 {
-		return false
-	}
-
-	// Agents are able to overlap if (only) one of them is in the air.
-	if a.mask^b.mask&mask.MTerrainAir == mask.MTerrainAir {
-		return false
-	}
-	return true
-}
 
 // SetID is only called by internal libraries. This function must not be invoked
 // by external users.
@@ -219,7 +182,7 @@ func SetCollisionVelocity(a *A, b *A, v vector.M) {
 	}
 }
 
-func SetFeaturecollisionVelocityStrict(a *A, f *feature.F, v vector.M) {
+func SetFeatureCollisionVelocityStrict(a *A, f *feature.F, v vector.M) {
 	if !hyperrectangle.Disjoint(AABB(a.Position(), a.Radius()), f.AABB()) {
 		v.SetX(0)
 		v.SetY(0)
