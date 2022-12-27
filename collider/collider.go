@@ -150,14 +150,25 @@ func (c *C) Neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bo
 	return c.neighbors(x, q, filter)
 }
 
-func (c *C) NeighborFeatures(q hyperrectangle.R) []id.ID {
+func (c *C) NeighborFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []id.ID {
 	c.bvhL.RLock()
 	defer c.bvhL.RUnlock()
 
-	return c.neighborFeatures(q)
+	return c.neighborFeatures(q, filter)
 }
 
-func (c *C) neighborFeatures(q hyperrectangle.R) []id.ID { return c.bvhFeatures.BroadPhase(q) }
+func (c *C) neighborFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []id.ID {
+	broadphase := c.bvh.BroadPhase(q)
+	collisions := make([]id.ID, 0, len(broadphase))
+	for _, x := range broadphase {
+		f := c.features[x]
+		if filter(f) {
+			collisions = append(collisions, x)
+		}
+	}
+
+	return collisions
+}
 
 func (c *C) neighbors(x id.ID, q hyperrectangle.R, filter func(a, b *agent.A) bool) []id.ID {
 	a := c.getOrDie(x)

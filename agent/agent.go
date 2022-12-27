@@ -6,11 +6,13 @@ import (
 
 	"github.com/downflux/go-bvh/id"
 	"github.com/downflux/go-collider/agent/mask"
+	"github.com/downflux/go-collider/feature"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
+	fmask "github.com/downflux/go-collider/feature/mask"
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
@@ -216,6 +218,16 @@ func SetCollisionVelocity(a *A, b *A, v vector.M) {
 		buf.Scale(c)
 		v.Sub(buf.V())
 	}
+}
+
+func SetFeaturecollisionVelocityStrict(a *A, f *feature.F, v vector.M) {
+	if !hyperrectangle.Disjoint(AABB(a.Position(), a.Radius()), f.AABB()) {
+		v.SetX(0)
+		v.SetY(0)
+	}
+}
+
+func SetFeatureCollisionVelocity(a *A, f *feature.F, v vector.M) {
 }
 
 func SetVelocity(a *A, v vector.M) {
