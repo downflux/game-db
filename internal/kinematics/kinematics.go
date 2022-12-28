@@ -50,22 +50,23 @@ func SetFeatureCollisionVelocityStrict(a *agent.A, f *feature.F, v vector.M) {
 	// N.B.: The normals point inwards towards the center of the AABB.
 	n := vector.M{0, 0}
 	d := math.Inf(1)
-	if e := math.Abs(x - xmin); e < d {
+	r := a.Radius()
+	if e := math.Abs(x - xmin); x <= xmin-r && e < d {
 		d = e
 		n.SetX(1)
 		n.SetY(0)
 	}
-	if e := math.Abs(x - xmax); e < d {
+	if e := math.Abs(x - xmax); x >= xmax+r && e < d {
 		d = e
 		n.SetX(-1)
 		n.SetY(0)
 	}
-	if e := math.Abs(y - ymin); e < d {
+	if e := math.Abs(y - ymin); y <= ymin-r && e < d {
 		d = e
 		n.SetX(0)
 		n.SetY(1)
 	}
-	if e := math.Abs(y - ymax); e < d {
+	if e := math.Abs(y - ymax); y >= ymax+r && e < d {
 		d = e
 		n.SetX(0)
 		n.SetY(-1)
@@ -140,22 +141,23 @@ func SetFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 	// N.B.: The normals point inwards towards the center of the AABB.
 	n := vector.M{0, 0}
 	d := math.Inf(1)
-	if e := math.Abs(x - xmin); e < d {
+	r := a.Radius()
+	if e := math.Abs(x - xmin); x <= xmin-r && e < d {
 		d = e
 		n.SetX(1)
 		n.SetY(0)
 	}
-	if e := math.Abs(x - xmax); e < d {
+	if e := math.Abs(x - xmax); x >= xmax+r && e < d {
 		d = e
 		n.SetX(-1)
 		n.SetY(0)
 	}
-	if e := math.Abs(y - ymin); e < d {
+	if e := math.Abs(y - ymin); y <= ymin-r && e < d {
 		d = e
 		n.SetX(0)
 		n.SetY(1)
 	}
-	if e := math.Abs(y - ymax); e < d {
+	if e := math.Abs(y - ymax); y >= ymax+r && e < d {
 		d = e
 		n.SetX(0)
 		n.SetY(-1)
