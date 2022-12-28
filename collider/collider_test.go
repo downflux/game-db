@@ -345,6 +345,29 @@ func BenchmarkTick(b *testing.B) {
 					Mask:               mask.MSizeSmall,
 				})
 			}
+
+			// Add world borders.
+			// Add xmin border.
+			collider.InsertFeature(feature.O{
+				Min: vector.V{-1, -1},
+				Max: vector.V{0, max + 1},
+			})
+			// Add xmax border.
+			collider.InsertFeature(feature.O{
+				Min: vector.V{max, -1},
+				Max: vector.V{max + 1, max + 1},
+			})
+			// Add ymin border.
+			collider.InsertFeature(feature.O{
+				Min: vector.V{0, -1},
+				Max: vector.V{max, 0},
+			})
+			// Add ymax border.
+			collider.InsertFeature(feature.O{
+				Min: vector.V{0, max},
+				Max: vector.V{max, max + 1},
+			})
+
 			b.StartTimer()
 			for i := 0; i < b.N; i++ {
 				collider.Tick(33 * time.Millisecond)

@@ -80,6 +80,7 @@ func (c *C) InsertFeature(o feature.O) *feature.F {
 	f := feature.New(o)
 	feature.SetID(f, x)
 
+	c.features[x] = f
 	if err := c.bvhFeatures.Insert(x, f.AABB()); err != nil {
 		panic(fmt.Sprintf("cannot insert feature: %v", err))
 	}
@@ -166,7 +167,6 @@ func (c *C) queryFeatures(q hyperrectangle.R, filter func(f *feature.F) bool) []
 			collisions = append(collisions, x)
 		}
 	}
-
 	return collisions
 }
 
