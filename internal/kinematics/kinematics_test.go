@@ -45,6 +45,16 @@ func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
 			v:    vector.V{0, 1},
 			want: vector.V{0, 1},
 		},
+		{
+			name: "Corner",
+			p:    vector.V{0, 0.9},
+			aabb: *hyperrectangle.New(
+				vnd.V{1, 0},
+				vnd.V{2, 10},
+			),
+			v:    vector.V{1, -1},
+			want: vector.V{0, 0},
+		},
 	}
 
 	for _, c := range configs {
@@ -248,14 +258,14 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 		},
 		{
 			name: "Corner",
-			p: vector.V{0, 0.9},
+			p:    vector.V{0, 0.9},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
 					vnd.V{1, 0},
 					vnd.V{2, 10},
 				),
 			},
-			v: vector.V{1, -1},
+			v:    vector.V{1, -1},
 			want: vector.V{0, -1},
 		},
 	}
