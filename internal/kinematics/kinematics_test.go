@@ -7,8 +7,12 @@ import (
 	"time"
 
 	"github.com/downflux/go-collider/agent"
+	"github.com/downflux/go-collider/feature"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
+
+	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
 func TestSetCollisionVelocityStrict(t *testing.T) {
@@ -130,6 +134,92 @@ func TestSetVelocity(t *testing.T) {
 
 func rn(min, max float64) float64  { return min + rand.Float64()*(max-min) }
 func rv(min, max float64) vector.V { return vector.V{rn(min, max), rn(min, max)} }
+
+func TestSetFeatureCollisionVelocity(t *testing.T) {
+	type config struct {
+		name  string
+		p     vector.V
+		aabbs []hyperrectangle.R
+		v     vector.V
+		want  vector.V
+	}
+
+	configs := []config{
+		{
+			name: "MinX",
+			p:    vector.V{1, 1},
+			aabbs: []hyperrectangle.R{
+				*hyperrectangle.New(
+					vnd.V{2, 0},
+					vnd.V{10, 10},
+				),
+			},
+			v:    vector.V{1, 1},
+			want: vector.V{0, 1},
+		},
+		{
+			name: "MaxX",
+			p:    vector.V{11, 1},
+			aabbs: []hyperrectangle.R{
+				*hyperrectangle.New(
+					vnd.V{2, 0},
+					vnd.V{10, 10},
+				),
+			},
+			v:    vector.V{-1, 1},
+			want: vector.V{0, 1},
+		},
+		{
+			name: "MinY",
+			p:    vector.V{0, -1},
+			aabbs: []hyperrectangle.R{
+				*hyperrectangle.New(
+					vnd.V{2, 0},
+					vnd.V{10, 10},
+				),
+			},
+			v:    vector.V{1, 1},
+			want: vector.V{1, 0},
+		},
+		{
+			name: "MaxY",
+			p:    vector.V{0, 11},
+			aabbs: []hyperrectangle.R{
+				*hyperrectangle.New(
+					vnd.V{2, 0},
+					vnd.V{10, 10},
+				),
+			},
+			v:    vector.V{1, -1},
+			want: vector.V{1, 0},
+		},
+	}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			v := vector.M{0, 0}
+			v.Copy(c.v)
+
+			a := agent.New(agent.O{
+				Heading:  polar.V{1, 0},
+				Velocity: vector.V{0, 0},
+				Position: c.p,
+			})
+			for _, aabb := range c.aabbs {
+				f := feature.New(feature.O{
+					Min: vector.V(aabb.Min()),
+					Max: vector.V(aabb.Max()),
+				})
+
+				SetFeatureCollisionVelocity(a, f, v)
+			}
+
+			if !vector.Within(v.V(), c.want) {
+				t.Errorf("SetFeatureCollisionVelocity() = %v, want = %v", v, c.want)
+			}
+		})
+	}
+}
 
 func TestSetCollisionVelocity(t *testing.T) {
 	type config struct {
