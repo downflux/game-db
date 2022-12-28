@@ -299,7 +299,7 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 					vnd.V{90, 80},
 				),
 			},
-			v:    vector.V{10, 10},
+			v: vector.V{10, 10},
 			// This is determined experimentally, but shouldb e
 			// fairly close to
 			//

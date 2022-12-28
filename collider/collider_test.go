@@ -359,24 +359,32 @@ func TestTick(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position:        vector.V{0, 9.9},
-				Velocity:        vector.V{1, -1},
-				MaxVelocity:     math.Sqrt(2),
-				MaxAcceleration: math.Sqrt(2),
-				Heading:         polar.V{1, 3 * math.Pi / 2},
-				Radius:          10,
-				Mask:            mask.MSizeSmall,
+				Position:           vector.V{60.0040783686527, 80.40391843262739},
+				Velocity:           vector.V{10, 10},
+				Heading:            polar.V{1, 1.550798992821703},
+				Radius:             10,
+				MaxVelocity:        100,
+				MaxAngularVelocity: math.Pi / 2,
+				MaxAcceleration:    5,
+				Mask:               mask.MSizeSmall,
 			})
 			collider.InsertFeature(feature.O{
-				Min: vector.V{10, 0},
-				Max: vector.V{20, 100},
+				Min: vector.V{70, 20},
+				Max: vector.V{90, 80},
 			})
+			// Ensure agent can still move when right at the corner.
+			// This case exposes a floating point error when
+			// checking for strict velocity feature collisions that
+			// needs to be taken into account.
 			return config{
-				name:     "Collision/CutCorner",
+				name:     "Experimental/CutCorner",
 				collider: collider,
-				d:        100 * time.Millisecond,
+				d:        20 * time.Millisecond,
 				want: map[id.ID]vector.V{
-					a.ID(): vector.V{0, 9.8},
+					a.ID(): vector.V{
+						60.01247289297099,
+						80.61166088862839,
+					},
 				},
 			}
 		}(),

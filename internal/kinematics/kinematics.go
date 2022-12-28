@@ -12,6 +12,12 @@ import (
 	chr "github.com/downflux/go-collider/internal/geometry/hyperrectangle"
 )
 
+const (
+	// tolerance accounts for some floating point errors at feature corners
+	// when agents need to slide past a corner.
+	tolerance = 1e-5
+)
+
 // SetCollisionVelocityStrict geenerates a velocity vector for two colliding
 // objects.
 //
@@ -39,7 +45,7 @@ func SetCollisionVelocityStrict(a *agent.A, b *agent.A, v vector.M) {
 func SetFeatureCollisionVelocityStrict(a *agent.A, f *feature.F, v vector.M) {
 	n := chr.N(f.AABB(), a.Position()).M()
 	n.Scale(-1)
-	if c := vector.Dot(n.V(), v.V()); c > 0 {
+	if c := vector.Dot(n.V(), v.V()); c > tolerance {
 		v.SetX(0)
 		v.SetY(0)
 	}
@@ -89,7 +95,7 @@ func SetCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
 
 	// If the vectors are pointing in the same direction, then force the
 	// object to stop moving.
-	if c := vector.Dot(buf.V(), v.V()); c > 0 {
+	if c := vector.Dot(buf.V(), v.V()); c > tolerance {
 		buf.Scale(c)
 		v.Sub(buf.V())
 	}
@@ -98,7 +104,7 @@ func SetCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
 func SetFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 	n := chr.N(f.AABB(), a.Position()).M()
 	n.Scale(-1)
-	if c := vector.Dot(n.V(), v.V()); c > 0 {
+	if c := vector.Dot(n.V(), v.V()); c > tolerance {
 		n.Scale(c)
 		v.Sub(n.V())
 	}
