@@ -44,6 +44,7 @@ func IsSquishableColliding(a *agent.A, b *agent.A) bool {
 	return false
 }
 
+// TODO(minkezhang): Add a more expensive circular intersection test.
 func IsCollidingFeature(a *agent.A, f *feature.F) bool {
 	m, n := a.Mask(), f.Mask()
 
@@ -52,5 +53,6 @@ func IsCollidingFeature(a *agent.A, f *feature.F) bool {
 	if (m^n)&mask.MTerrainAir == mask.MTerrainAir {
 		return false
 	}
+
 	return !hyperrectangle.Disjoint(agent.AABB(a.Position(), a.Radius()), f.AABB())
 }
