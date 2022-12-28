@@ -287,6 +287,21 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 				-1.0891089108910892,
 			},
 		},
+		{
+			name: "Experimental",
+			p: vector.V{
+				60.0040783686527,
+				80.40391843262739,
+			},
+			aabbs: []hyperrectangle.R{
+				*hyperrectangle.New(
+					vnd.V{70, 20},
+					vnd.V{90, 80},
+				),
+			},
+			v: vector.V{10, 10},
+			want: vector.V{0.4197262159146238, 10.387122800050154},
+		},
 	}
 
 	for _, c := range configs {
