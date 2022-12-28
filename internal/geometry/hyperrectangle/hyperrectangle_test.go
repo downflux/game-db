@@ -69,3 +69,52 @@ func TestN(t *testing.T) {
 		})
 	}
 }
+
+func TestCollide(t *testing.T) {
+	type config struct {
+		name   string
+		r      hyperrectangle.R
+		p      vector.V
+		radius float64
+		want   bool
+	}
+
+	configs := []config{
+		{
+			name:   "Center",
+			r:      *hyperrectangle.New(vnd.V{0, 0}, vnd.V{10, 10}),
+			p:      vector.V{5, 5},
+			radius: 1,
+			want:   true,
+		},
+		{
+			name:   "Corner",
+			r:      *hyperrectangle.New(vnd.V{0, 0}, vnd.V{10, 10}),
+			p:      vector.V{-1, -1},
+			radius: 2,
+			want:   true,
+		},
+		{
+			name:   "Edge",
+			r:      *hyperrectangle.New(vnd.V{0, 0}, vnd.V{10, 10}),
+			p:      vector.V{-1, 5},
+			radius: 2,
+			want:   true,
+		},
+		{
+			name:   "Outside",
+			r:      *hyperrectangle.New(vnd.V{0, 0}, vnd.V{10, 10}),
+			p:      vector.V{12, 12},
+			radius: 1,
+			want:   false,
+		},
+	}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			if got := Collide(c.r, c.p, c.radius); got != c.want {
+				t.Errorf("Collide() = %v, want = %v", got, c.want)
+			}
+		})
+	}
+}
