@@ -13,8 +13,6 @@ import (
 type Side uint64
 
 const (
-	SideNone = iota
-
 	SideN = 1 << iota
 	SideE
 	SideS
@@ -48,7 +46,6 @@ func N(r hyperrectangle.R, v vector.V) vector.V {
 
 	n := vector.M{0, 0}
 	n.Copy(v)
-	n.Scale(-1)
 
 	switch domain {
 	case SideN:
@@ -60,22 +57,22 @@ func N(r hyperrectangle.R, v vector.V) vector.V {
 	case SideW:
 		return vector.V{-1, 0}
 	case CornerNE:
-		n.Add(vector.V{xmax, ymax})
+		n.Sub(vector.V{xmax, ymax})
 		if epsilon.Within(vector.Magnitude(n.V()), 0) {
 			n.Copy(vector.V{1, 1})
 		}
 	case CornerSE:
-		n.Add(vector.V{xmax, ymin})
+		n.Sub(vector.V{xmax, ymin})
 		if epsilon.Within(vector.Magnitude(n.V()), 0) {
 			n.Copy(vector.V{1, -1})
 		}
 	case CornerSW:
-		n.Add(vector.V{xmin, ymin})
+		n.Sub(vector.V{xmin, ymin})
 		if epsilon.Within(vector.Magnitude(n.V()), 0) {
 			n.Copy(vector.V{-1, -1})
 		}
 	case CornerNW:
-		n.Add(vector.V{xmin, ymax})
+		n.Sub(vector.V{xmin, ymax})
 		if epsilon.Within(vector.Magnitude(n.V()), 0) {
 			n.Copy(vector.V{-1, 1})
 		}

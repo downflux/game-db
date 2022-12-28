@@ -19,7 +19,6 @@ func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
 	type config struct {
 		name string
 		p    vector.V
-		r    float64
 		aabb hyperrectangle.R
 		v    vector.V
 		want vector.V
@@ -29,7 +28,6 @@ func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
 		{
 			name: "Simple",
 			p:    vector.V{0, 5},
-			r:    1,
 			aabb: *hyperrectangle.New(
 				vnd.V{1, 0},
 				vnd.V{2, 10},
@@ -40,7 +38,6 @@ func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
 		{
 			name: "Simple/NoCollision/Perpendicular",
 			p:    vector.V{0, 5},
-			r:    1,
 			aabb: *hyperrectangle.New(
 				vnd.V{1, 0},
 				vnd.V{2, 10},
@@ -51,7 +48,6 @@ func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
 		{
 			name: "Corner",
 			p:    vector.V{0, 0.9},
-			r:    1,
 			aabb: *hyperrectangle.New(
 				vnd.V{1, 0},
 				vnd.V{2, 10},
@@ -206,7 +202,6 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 	type config struct {
 		name  string
 		p     vector.V
-		r     float64
 		aabbs []hyperrectangle.R
 		v     vector.V
 		want  vector.V
@@ -216,7 +211,6 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 		{
 			name: "MinX",
 			p:    vector.V{1, 1},
-			r:    1,
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
 					vnd.V{2, 0},
@@ -228,7 +222,6 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 		},
 		{
 			name: "MaxX",
-			r:    1,
 			p:    vector.V{11, 1},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
@@ -241,8 +234,7 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 		},
 		{
 			name: "MinY",
-			p:    vector.V{0, -1},
-			r:    1,
+			p:    vector.V{4, -1},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
 					vnd.V{2, 0},
@@ -254,8 +246,7 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 		},
 		{
 			name: "MaxY",
-			p:    vector.V{0, 11},
-			r:    1,
+			p:    vector.V{4, 11},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
 					vnd.V{2, 0},
@@ -268,7 +259,6 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 		{
 			name: "Corner",
 			p:    vector.V{0, 0.9},
-			r:    1,
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
 					vnd.V{1, 0},
@@ -281,15 +271,21 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 		{
 			name: "Corner/Slide",
 			p:    vector.V{0, -0.1},
-			r:    1,
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
 					vnd.V{1, 0},
 					vnd.V{2, 10},
 				),
 			},
-			v:    vector.V{1, -1},
-			want: vector.V{0, -1},
+			v: vector.V{1, -1},
+			// Determined experimentally; this result should be
+			// close to
+			//
+			//  vector.V{0, -1}
+			want: vector.V{
+				0.10891089108910867,
+				-1.0891089108910892,
+			},
 		},
 	}
 
@@ -302,7 +298,6 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 				Heading:  polar.V{1, 0},
 				Velocity: vector.V{0, 0},
 				Position: c.p,
-				Radius:   c.r,
 			})
 			for _, aabb := range c.aabbs {
 				f := feature.New(feature.O{

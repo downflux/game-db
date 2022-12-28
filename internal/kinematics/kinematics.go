@@ -1,7 +1,6 @@
 package kinematics
 
 import (
-	"math"
 	"time"
 
 	"github.com/downflux/go-collider/agent"
@@ -10,7 +9,7 @@ import (
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
 
-	vnd "github.com/downflux/go-geometry/nd/vector"
+	chr "github.com/downflux/go-collider/internal/geometry/hyperrectangle"
 )
 
 // SetCollisionVelocityStrict geenerates a velocity vector for two colliding
@@ -38,40 +37,8 @@ func SetCollisionVelocityStrict(a *agent.A, b *agent.A, v vector.M) {
 }
 
 func SetFeatureCollisionVelocityStrict(a *agent.A, f *feature.F, v vector.M) {
-	x, y := a.Position().X(), a.Position().Y()
-
-	xmin, ymin := f.AABB().Min().X(vnd.AXIS_X), f.AABB().Min().X(vnd.AXIS_Y)
-	xmax, ymax := f.AABB().Max().X(vnd.AXIS_Y), f.AABB().Max().X(vnd.AXIS_Y)
-
-	// Get the normal associated with the closest border of the AABB.
-	// Because the AABB is aligned to the X and Y axes, it is trivial to
-	// calculate the projected distance to each border segment.
-	//
-	// N.B.: The normals point inwards towards the center of the AABB.
-	n := vector.M{0, 0}
-	d := math.Inf(1)
-	r := a.Radius()
-	if e := math.Abs(x - xmin); x <= xmin-r && e < d {
-		d = e
-		n.SetX(1)
-		n.SetY(0)
-	}
-	if e := math.Abs(x - xmax); x >= xmax+r && e < d {
-		d = e
-		n.SetX(-1)
-		n.SetY(0)
-	}
-	if e := math.Abs(y - ymin); y <= ymin-r && e < d {
-		d = e
-		n.SetX(0)
-		n.SetY(1)
-	}
-	if e := math.Abs(y - ymax); y >= ymax+r && e < d {
-		d = e
-		n.SetX(0)
-		n.SetY(-1)
-	}
-
+	n := chr.N(f.AABB(), a.Position()).M()
+	n.Scale(-1)
 	if c := vector.Dot(n.V(), v.V()); c > 0 {
 		v.SetX(0)
 		v.SetY(0)
@@ -129,40 +96,8 @@ func SetCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
 }
 
 func SetFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
-	x, y := a.Position().X(), a.Position().Y()
-
-	xmin, ymin := f.AABB().Min().X(vnd.AXIS_X), f.AABB().Min().X(vnd.AXIS_Y)
-	xmax, ymax := f.AABB().Max().X(vnd.AXIS_Y), f.AABB().Max().X(vnd.AXIS_Y)
-
-	// Get the normal associated with the closest border of the AABB.
-	// Because the AABB is aligned to the X and Y axes, it is trivial to
-	// calculate the projected distance to each border segment.
-	//
-	// N.B.: The normals point inwards towards the center of the AABB.
-	n := vector.M{0, 0}
-	d := math.Inf(1)
-	r := a.Radius()
-	if e := math.Abs(x - xmin); x <= xmin-r && e < d {
-		d = e
-		n.SetX(1)
-		n.SetY(0)
-	}
-	if e := math.Abs(x - xmax); x >= xmax+r && e < d {
-		d = e
-		n.SetX(-1)
-		n.SetY(0)
-	}
-	if e := math.Abs(y - ymin); y <= ymin-r && e < d {
-		d = e
-		n.SetX(0)
-		n.SetY(1)
-	}
-	if e := math.Abs(y - ymax); y >= ymax+r && e < d {
-		d = e
-		n.SetX(0)
-		n.SetY(-1)
-	}
-
+	n := chr.N(f.AABB(), a.Position()).M()
+	n.Scale(-1)
 	if c := vector.Dot(n.V(), v.V()); c > 0 {
 		n.Scale(c)
 		v.Sub(n.V())
