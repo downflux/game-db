@@ -40,7 +40,71 @@ func TestQueryFeatures(t *testing.T) {
 		want     []id.ID
 	}
 
-	configs := []config{}
+	configs := []config{
+		func() config {
+			collider := New(DefaultO)
+			a := collider.Insert(agent.O{
+				Position: vector.V{5, 15},
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Radius:   5,
+				Mask:     mask.MSizeSmall,
+			})
+			f := collider.InsertFeature(feature.O{
+				Min: vector.V{10, 10},
+				Max: vector.V{20, 20},
+			})
+			return config{
+				name:     "Touch",
+				collider: collider,
+				x:        a.ID(),
+				q:        agent.AABB(a.Position(), a.Radius()),
+				want:     []id.ID{f.ID()},
+			}
+		}(),
+		func() config {
+			collider := New(DefaultO)
+			a := collider.Insert(agent.O{
+				Position: vector.V{9, 10},
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Radius:   1,
+				Mask:     mask.MSizeSmall,
+			})
+			f := collider.InsertFeature(feature.O{
+				Min: vector.V{10, 10},
+				Max: vector.V{20, 20},
+			})
+			return config{
+				name:     "Slide",
+				collider: collider,
+				x:        a.ID(),
+				q:        agent.AABB(a.Position(), a.Radius()),
+				want:     []id.ID{f.ID()},
+			}
+		}(),
+		func() config {
+			collider := New(DefaultO)
+			a := collider.Insert(agent.O{
+				Position: vector.V{5, 5},
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Radius:   5,
+				Mask:     mask.MSizeSmall,
+			})
+			f := collider.InsertFeature(feature.O{
+				Min: vector.V{10, 10},
+				Max: vector.V{20, 20},
+			})
+			return config{
+				name:     "Corner",
+				collider: collider,
+				x:        a.ID(),
+				q:        agent.AABB(a.Position(), a.Radius()),
+				want:     []id.ID{f.ID()},
+			}
+		}(),
+	}
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
@@ -289,6 +353,30 @@ func TestTick(t *testing.T) {
 				want: map[id.ID]vector.V{
 					a.ID(): vector.V{10, 10.1},
 					b.ID(): vector.V{10, 11.9},
+				},
+			}
+		}(),
+		func() config {
+			collider := New(DefaultO)
+			a := collider.Insert(agent.O{
+				Position:        vector.V{0, 9.9},
+				Velocity:        vector.V{1, -1},
+				MaxVelocity:     math.Sqrt(2),
+				MaxAcceleration: math.Sqrt(2),
+				Heading:         polar.V{1, 3 * math.Pi / 2},
+				Radius:          10,
+				Mask:            mask.MSizeSmall,
+			})
+			collider.InsertFeature(feature.O{
+				Min: vector.V{10, 0},
+				Max: vector.V{20, 100},
+			})
+			return config{
+				name:     "Collision/CutCorner",
+				collider: collider,
+				d:        100 * time.Millisecond,
+				want: map[id.ID]vector.V{
+					a.ID(): vector.V{0, 9.8},
 				},
 			}
 		}(),

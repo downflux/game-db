@@ -15,11 +15,66 @@ import (
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
+func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
+	type config struct {
+		name string
+		p    vector.V
+		aabb hyperrectangle.R
+		v    vector.V
+		want vector.V
+	}
+
+	configs := []config{
+		{
+			name: "Simple",
+			p:    vector.V{0, 5},
+			aabb: *hyperrectangle.New(
+				vnd.V{1, 0},
+				vnd.V{2, 10},
+			),
+			v:    vector.V{1, 0},
+			want: vector.V{0, 0},
+		},
+		{
+			name: "Simple/NoCollision/Perpendicular",
+			p:    vector.V{0, 5},
+			aabb: *hyperrectangle.New(
+				vnd.V{1, 0},
+				vnd.V{2, 10},
+			),
+			v:    vector.V{0, 1},
+			want: vector.V{0, 1},
+		},
+	}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			v := vector.M{0, 0}
+			v.Copy(c.v)
+
+			a := agent.New(agent.O{
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Position: c.p,
+			})
+			f := feature.New(feature.O{
+				Min: vector.V(c.aabb.Min()),
+				Max: vector.V(c.aabb.Max()),
+			})
+			SetFeatureCollisionVelocityStrict(a, f, v)
+
+			if !vector.Within(v.V(), c.want) {
+				t.Errorf("SetFeatureCollisionVelocity() = %v, want = %v", v, c.want)
+			}
+		})
+	}
+}
+
 func TestSetCollisionVelocityStrict(t *testing.T) {
 	type config struct {
 		name string
 		p    vector.V
-		qs   []vector.V
+		q    vector.V
 		v    vector.V
 		want vector.V
 	}
@@ -28,14 +83,14 @@ func TestSetCollisionVelocityStrict(t *testing.T) {
 		{
 			name: "Simple",
 			p:    vector.V{0, 0},
-			qs:   []vector.V{vector.V{0, 100}},
+			q:    vector.V{0, 100},
 			v:    vector.V{0, 2},
 			want: vector.V{0, 0},
 		},
 		{
 			name: "Simple/NoCollision/Perpendicular",
 			p:    vector.V{0, 0},
-			qs:   []vector.V{vector.V{100, 0}},
+			q:    vector.V{100, 0},
 			v:    vector.V{0, 2},
 			want: vector.V{0, 2},
 		},
@@ -52,15 +107,13 @@ func TestSetCollisionVelocityStrict(t *testing.T) {
 				Position: c.p,
 			})
 			agent.SetID(a, 1)
-			for _, q := range c.qs {
-				b := agent.New(agent.O{
-					Velocity: vector.V{0, 0},
-					Heading:  polar.V{1, 0},
-					Position: q,
-				})
-				agent.SetID(b, 2)
-				SetCollisionVelocityStrict(a, b, v)
-			}
+			b := agent.New(agent.O{
+				Velocity: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Position: c.q,
+			})
+			agent.SetID(b, 2)
+			SetCollisionVelocityStrict(a, b, v)
 
 			if !vector.Within(v.V(), c.want) {
 				t.Errorf("SetCollisionVelocity() = %v, want = %v", v, c.want)
