@@ -6,6 +6,8 @@ import (
 	"github.com/downflux/go-collider/mask"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
+
+	chr "github.com/downflux/go-collider/internal/geometry/hyperrectangle"
 )
 
 // IsColliding checks if two agents are actually physically overlapping. This
@@ -44,7 +46,6 @@ func IsSquishableColliding(a *agent.A, b *agent.A) bool {
 	return false
 }
 
-// TODO(minkezhang): Add a more expensive circular intersection test.
 func IsCollidingFeature(a *agent.A, f *feature.F) bool {
 	m, n := a.Mask(), f.Mask()
 
@@ -54,5 +55,9 @@ func IsCollidingFeature(a *agent.A, f *feature.F) bool {
 		return false
 	}
 
-	return !hyperrectangle.Disjoint(agent.AABB(a.Position(), a.Radius()), f.AABB())
+	if hyperrectangle.Disjoint(agent.AABB(a.Position(), a.Radius()), f.AABB()) {
+		return false
+	}
+
+	return chr.Collide(f.AABB(), a.Position(), a.Radius())
 }
