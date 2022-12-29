@@ -1,6 +1,7 @@
 package kinematics
 
 import (
+	"math"
 	"time"
 
 	"github.com/downflux/go-collider/agent"
@@ -152,22 +153,17 @@ func SetHeading(a *agent.A, d time.Duration, v vector.M, h polar.M) {
 
 	htheta := a.Heading().Theta()
 	ptheta := p.Theta()
-	if htheta > ptheta {
-		if htheta-ptheta > omega {
-			h.SetTheta(htheta - omega)
-			v.SetX(0)
-			v.SetY(0)
-		} else {
-			h.SetTheta(ptheta)
-		}
-	} else if htheta < ptheta {
-		if ptheta-htheta > omega {
-			h.SetTheta(htheta + omega)
-			v.SetX(0)
-			v.SetY(0)
-		} else {
-			h.SetTheta(ptheta)
-		}
+	// Both htheta and ptheta range from 0 to 2π, so we need to find the
+	// optimal rotation direction first.
+	//
+	// See https://math.stackexchange.com/a/2898118.
+	dtheta := math.Mod(ptheta-htheta+3*math.Pi, 2*math.Pi) - math.Pi
+	if math.Abs(dtheta) > omega {
+		h.SetTheta(htheta + (dtheta/math.Abs(dtheta))*omega)
+		v.SetX(0)
+		v.SetY(0)
+	} else {
+		h.SetTheta(htheta + dtheta)
 	}
 
 	h.Normalize()
