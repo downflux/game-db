@@ -150,21 +150,23 @@ func SetHeading(a *agent.A, d time.Duration, v vector.M, h polar.M) {
 	// the angular difference between v and the heading.
 	omega := a.MaxAngularVelocity() * (float64(d) / float64(time.Second))
 
-	if a.Heading().Theta() > p.Theta() {
-		if a.Heading().Theta()-p.Theta() > omega {
-			h.SetTheta(a.Heading().Theta() - omega)
+	htheta := a.Heading().Theta()
+	ptheta := p.Theta()
+	if htheta > ptheta {
+		if htheta-ptheta > omega {
+			h.SetTheta(htheta - omega)
 			v.SetX(0)
 			v.SetY(0)
 		} else {
-			h.SetTheta(p.Theta())
+			h.SetTheta(ptheta)
 		}
-	} else if a.Heading().Theta() < p.Theta() {
-		if p.Theta()-a.Heading().Theta() > omega {
-			h.SetTheta(a.Heading().Theta() + omega)
+	} else if htheta < ptheta {
+		if ptheta-htheta > omega {
+			h.SetTheta(htheta + omega)
 			v.SetX(0)
 			v.SetY(0)
 		} else {
-			h.SetTheta(p.Theta())
+			h.SetTheta(ptheta)
 		}
 	}
 
