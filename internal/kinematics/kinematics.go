@@ -135,6 +135,9 @@ func SetVelocity(a *agent.A, v vector.M) {
 // simulated values for the next tick.
 //
 // TODO(minkezhang): Handle agents that can reverse.
+//
+// TODO(minkezhang): Handle case where agents are turning in the wrong
+// direction.
 func SetHeading(a *agent.A, d time.Duration, v vector.M, h polar.M) {
 	if epsilon.Within(vector.Magnitude(v.V()), 0) {
 		return
