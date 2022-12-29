@@ -119,15 +119,17 @@ func ClampVelocity(a *agent.A, v vector.M) {
 
 func ClampAcceleration(a *agent.A, v vector.M, d time.Duration) {
 	t := float64(d) / float64(time.Second)
+	mtv := vector.Magnitude(agent.TickVelocity(a))
+	mv := vector.Magnitude(v.V())
 	// Only clamp the velocity if the agent is speeding up. We want to
 	// prevent collisions at all costs, so the braking acceleration is
 	// boundless.
-	if vector.Magnitude(agent.TickVelocity(a)) < vector.Magnitude(v.V()) {
-		c := vector.Magnitude(v.V()) - vector.Magnitude(agent.TickVelocity(a))
+	if mtv < mv {
+		c := mv - mtv
 		if c > t*a.MaxAcceleration() {
 			c = t * a.MaxAcceleration()
 		}
-		d := (c + vector.Magnitude(agent.TickVelocity(a))) / vector.Magnitude(v.V())
+		d := (c + mtv) / mv
 		v.Scale(d)
 		return
 	}
