@@ -19,7 +19,7 @@ const (
 	tolerance = 1e-5
 )
 
-// SetCollisionVelocityStrict geenerates a velocity vector for two colliding
+// ClampCollisionVelocity geenerates a velocity vector for two colliding
 // objects.
 //
 // The input velocity vector v is a velocity buffer for the first agent a; if
@@ -29,7 +29,7 @@ const (
 // This is a much simpler way to deal with the three body problem -- this, the
 // case of when the constant "flip-flip" from SetCollisionVelocity can
 // accidentally flip the velocity vector back into a neighbor.
-func SetCollisionVelocityStrict(a *agent.A, b *agent.A, v vector.M) {
+func ClampCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
 	// Find the unit collision vector pointing from a to b.
 	buf := vector.M{0, 0}
 	buf.Copy(b.Position())
@@ -43,7 +43,7 @@ func SetCollisionVelocityStrict(a *agent.A, b *agent.A, v vector.M) {
 	}
 }
 
-func SetFeatureCollisionVelocityStrict(a *agent.A, f *feature.F, v vector.M) {
+func ClampFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 	n := chr.N(f.AABB(), a.Position()).M()
 	n.Scale(-1)
 	if c := vector.Dot(n.V(), v.V()); c > tolerance {

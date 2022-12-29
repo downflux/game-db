@@ -303,7 +303,7 @@ func (c *C) generate() []result {
 					// Second pass ensures agent is not
 					// colliding with any static features.
 					for _, y := range fs {
-						kinematics.SetFeatureCollisionVelocityStrict(a, c.features[y], v)
+						kinematics.ClampFeatureCollisionVelocity(a, c.features[y], v)
 					}
 
 					// Second pass across neighbors forces
@@ -321,7 +321,7 @@ func (c *C) generate() []result {
 					// collision radius.
 					if len(ns) > 1 {
 						for _, y := range ns {
-							kinematics.SetCollisionVelocityStrict(a, c.agents[y], v)
+							kinematics.ClampCollisionVelocity(a, c.agents[y], v)
 						}
 					}
 

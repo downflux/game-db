@@ -15,7 +15,7 @@ import (
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
-func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
+func TestClampFeatureCollisionVelocity(t *testing.T) {
 	type config struct {
 		name string
 		p    vector.V
@@ -71,16 +71,16 @@ func TestSetFeatureCollisionVelocityStrict(t *testing.T) {
 				Min: vector.V(c.aabb.Min()),
 				Max: vector.V(c.aabb.Max()),
 			})
-			SetFeatureCollisionVelocityStrict(a, f, v)
+			ClampFeatureCollisionVelocity(a, f, v)
 
 			if !vector.Within(v.V(), c.want) {
-				t.Errorf("SetFeatureCollisionVelocityStrict() = %v, want = %v", v, c.want)
+				t.Errorf("ClampFeatureCollisionVelocity() = %v, want = %v", v, c.want)
 			}
 		})
 	}
 }
 
-func TestSetCollisionVelocityStrict(t *testing.T) {
+func TestClampCollisionVelocity(t *testing.T) {
 	type config struct {
 		name string
 		p    vector.V
@@ -123,7 +123,7 @@ func TestSetCollisionVelocityStrict(t *testing.T) {
 				Position: c.q,
 			})
 			agent.SetID(b, 2)
-			SetCollisionVelocityStrict(a, b, v)
+			ClampCollisionVelocity(a, b, v)
 
 			if !vector.Within(v.V(), c.want) {
 				t.Errorf("SetCollisionVelocity() = %v, want = %v", v, c.want)
