@@ -445,22 +445,22 @@ func BenchmarkTick(b *testing.B) {
 			// Add world borders.
 			// Add xmin border.
 			collider.InsertFeature(feature.O{
-				Min: vector.V{-1, -1},
-				Max: vector.V{0, max + 1},
+				Min: vector.V{min - 1, min - 1},
+				Max: vector.V{min, max + 1},
 			})
 			// Add xmax border.
 			collider.InsertFeature(feature.O{
-				Min: vector.V{max, -1},
+				Min: vector.V{max, min - 1},
 				Max: vector.V{max + 1, max + 1},
 			})
 			// Add ymin border.
 			collider.InsertFeature(feature.O{
-				Min: vector.V{0, -1},
-				Max: vector.V{max, 0},
+				Min: vector.V{min, min - 1},
+				Max: vector.V{max, min},
 			})
 			// Add ymax border.
 			collider.InsertFeature(feature.O{
-				Min: vector.V{0, max},
+				Min: vector.V{min, max},
 				Max: vector.V{max, max + 1},
 			})
 
