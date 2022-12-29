@@ -310,19 +310,8 @@ func (c *C) generate() []result {
 					// the velocity to zero if a velocity
 					// has flip-flopped back into the
 					// forbidden zone of another agent.
-					//
-					// Note that this flip-flop behavior is
-					// only a problem if there is more than
-					// one neighbor -- this actually allows
-					// us to natively do some crowd-control
-					// without higher-level pathing by
-					// letting the edges of a collision
-					// move out and gradually shrinking the
-					// collision radius.
-					if len(ns) > 1 {
-						for _, y := range ns {
-							kinematics.ClampCollisionVelocity(a, c.agents[y], v)
-						}
+					for _, y := range ns {
+						kinematics.ClampCollisionVelocity(a, c.agents[y], v)
 					}
 
 					out <- result{
