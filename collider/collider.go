@@ -368,16 +368,19 @@ func (c *C) Tick(d time.Duration) {
 		go func(ch <-chan result) {
 			defer wg.Done()
 			for r := range ch {
-				agent.SetVelocity(r.agent, r.v.M())
+				kinematics.ClampVelocity(r.agent, r.v.M())
+				kinematics.ClampAcceleration(r.agent, r.v.M(), d)
 
 				// N.B.: The velocity can be further reduced to
 				// zero here due to the physical limitations of
 				// the agent.
 				h := polar.V{1, r.agent.Heading().Theta()}
-				kinematics.SetHeading(r.agent, d, r.v.M(), h.M())
+				kinematics.ClampHeading(r.agent, d, r.v.M(), h.M())
 
 				r.agent.Position().M().Add(vector.Scale(t, r.v))
 				r.agent.Heading().M().Copy(h)
+
+				agent.SetTickVelocity(r.agent, r.v.M())
 			}
 		}(in)
 	}

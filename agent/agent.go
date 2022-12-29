@@ -16,6 +16,10 @@ import (
 // meters, seconds, etc.
 type O struct {
 	Position vector.V
+
+	// Velocity is the target velocity of the agent. This is directly
+	// mutable by the end-target, but may not reflect the actual velocity of
+	// the agent.
 	Velocity vector.V
 
 	// Radius is a non-negative number representing the size of the agent.
@@ -35,6 +39,10 @@ type A struct {
 	position vector.M
 	velocity vector.M
 	radius   float64
+
+	// tv is the actual tick-to-tick velocity. This is used for smoothing
+	// over acceleration values.
+	tv vector.M
 
 	// heading is a unit polar vector whose angular component is oriented to
 	// the positive X-axis. The angle is calculated according to normal 2D
@@ -78,10 +86,13 @@ func New(o O) *A {
 	v.Copy(o.Velocity)
 	h := polar.V([]float64{0, 0}).M()
 	h.Copy(polar.Normalize(o.Heading))
+	tv := vector.V([]float64{0, 0}).M()
+	tv.Copy(o.Velocity)
 
 	a := &A{
 		position: p,
 		velocity: v,
+		tv:       tv,
 		radius:   o.Radius,
 		heading:  h,
 
@@ -108,21 +119,5 @@ func AABB(p vector.V, r float64) hyperrectangle.R {
 	)
 }
 
-func SetVelocity(a *A, v vector.M) {
-	if c := vector.Magnitude(v.V()); c > a.maxVelocity {
-		v.Scale(a.maxVelocity / c)
-	}
-
-	buf := vector.M{0, 0}
-	buf.Copy(v.V())
-	buf.Sub(a.Velocity())
-
-	// Do not apply acceleration limits for breaking.
-	if vector.Magnitude(a.Velocity()) < vector.Magnitude(v.V()) {
-		if c := vector.Magnitude(buf.V()); c > a.maxAcceleration {
-			buf.Scale(a.maxAcceleration / c)
-			v.Copy(a.Velocity())
-			v.Add(buf.V())
-		}
-	}
-}
+func SetTickVelocity(a *A, v vector.M) { a.tv.Copy(v.V()) }
+func TickVelocity(a *A) vector.V       { return a.tv.V() }

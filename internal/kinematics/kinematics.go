@@ -37,7 +37,7 @@ func SetCollisionVelocityStrict(a *agent.A, b *agent.A, v vector.M) {
 
 	// If the vectors are pointing in the same direction, then force the
 	// object to stop moving.
-	if c := vector.Dot(buf.V(), v.V()); c > 0 {
+	if c := vector.Dot(buf.V(), v.V()); c > tolerance {
 		v.SetX(0)
 		v.SetY(0)
 	}
@@ -111,35 +111,33 @@ func SetFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 	}
 }
 
-// SetVelocity clamps the agent velocity to the maximum possible magnitude
-// defind by the max velocity and max acceleration.
-func SetVelocity(a *agent.A, v vector.M) {
+func ClampVelocity(a *agent.A, v vector.M) {
 	if c := vector.Magnitude(v.V()); c > a.MaxVelocity() {
 		v.Scale(a.MaxVelocity() / c)
 	}
+}
 
-	buf := vector.M{0, 0}
-	buf.Copy(v.V())
-	buf.Sub(a.Velocity())
-
-	// Do not apply acceleration limits for breaking.
-	if vector.Magnitude(a.Velocity()) < vector.Magnitude(v.V()) {
-		if c := vector.Magnitude(buf.V()); c > a.MaxAcceleration() {
-			buf.Scale(a.MaxAcceleration() / c)
-			v.Copy(a.Velocity())
-			v.Add(buf.V())
+func ClampAcceleration(a *agent.A, v vector.M, d time.Duration) {
+	t := float64(d) / float64(time.Second)
+	// Only clamp the velocity if the agent is speeding up. We want to
+	// prevent collisions at all costs, so the braking acceleration is
+	// boundless.
+	if vector.Magnitude(agent.TickVelocity(a)) < vector.Magnitude(v.V()) {
+		c := vector.Magnitude(v.V()) - vector.Magnitude(agent.TickVelocity(a))
+		if c > t*a.MaxAcceleration() {
+			c = t * a.MaxAcceleration()
 		}
+		d := (c + vector.Magnitude(agent.TickVelocity(a))) / vector.Magnitude(v.V())
+		v.Scale(d)
+		return
 	}
 }
 
-// SetHeading sets the input velocity and heading vectors to the appropriate
+// ClampHeading sets the input velocity and heading vectors to the appropriate
 // simulated values for the next tick.
 //
 // TODO(minkezhang): Handle agents that can reverse.
-//
-// TODO(minkezhang): Handle case where agents are turning in the wrong
-// direction.
-func SetHeading(a *agent.A, d time.Duration, v vector.M, h polar.M) {
+func ClampHeading(a *agent.A, d time.Duration, v vector.M, h polar.M) {
 	if epsilon.Within(vector.Magnitude(v.V()), 0) {
 		return
 	}

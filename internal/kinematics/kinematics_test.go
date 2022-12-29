@@ -132,46 +132,27 @@ func TestSetCollisionVelocityStrict(t *testing.T) {
 	}
 }
 
-func TestSetVelocity(t *testing.T) {
+func TestClampAcceleration(t *testing.T) {
 	type config struct {
 		name            string
-		agentV          vector.V
+		tv              vector.V
 		v               vector.V
-		maxVelocity     float64
 		maxAcceleration float64
 		want            vector.V
 	}
 
 	configs := []config{
 		{
-			name:            "Within",
-			agentV:          vector.V{0, 0},
-			v:               vector.V{10, 0},
-			maxVelocity:     100,
-			maxAcceleration: 100,
-			want:            vector.V{10, 0},
-		},
-		{
-			name:            "TooFast",
-			agentV:          vector.V{0, 0},
-			v:               vector.V{10, 0},
-			maxVelocity:     5,
-			maxAcceleration: 100,
-			want:            vector.V{5, 0},
-		},
-		{
 			name:            "TooSudden",
-			agentV:          vector.V{1, 0},
+			tv:              vector.V{1, 0},
 			v:               vector.V{10, 0},
-			maxVelocity:     100,
 			maxAcceleration: 1,
 			want:            vector.V{2, 0},
 		},
 		{
 			name:            "AlwaysStop",
-			agentV:          vector.V{100, 0},
+			tv:              vector.V{100, 0},
 			v:               vector.V{0, 0},
-			maxVelocity:     100,
 			maxAcceleration: 0,
 			want:            vector.V{0, 0},
 		},
@@ -180,16 +161,58 @@ func TestSetVelocity(t *testing.T) {
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
 			a := agent.New(agent.O{
-				Position:        vector.V{0, 0},
-				Heading:         polar.V{1, 0},
-				Velocity:        c.agentV,
-				MaxVelocity:     c.maxVelocity,
+				Heading:  polar.V{1, 0},
+				Position: vector.V{0, 0},
+
+				Velocity:        c.tv,
 				MaxAcceleration: c.maxAcceleration,
 			})
 
-			SetVelocity(a, c.v.M())
+			ClampAcceleration(a, c.v.M(), time.Second)
 			if !vector.Within(c.v, c.want) {
-				t.Errorf("v = %v, want = %v", c.v, c.want)
+				t.Errorf("ClampAcceleration() = %v, want = %v", c.v, c.want)
+			}
+		})
+	}
+
+}
+
+func TestClampVelocity(t *testing.T) {
+	type config struct {
+		name        string
+		v           vector.V
+		maxVelocity float64
+		want        vector.V
+	}
+
+	configs := []config{
+		{
+			name:        "Within",
+			v:           vector.V{10, 0},
+			maxVelocity: 100,
+			want:        vector.V{10, 0},
+		},
+		{
+			name:        "TooFast",
+			v:           vector.V{10, 0},
+			maxVelocity: 5,
+			want:        vector.V{5, 0},
+		},
+	}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			a := agent.New(agent.O{
+				Position: vector.V{0, 0},
+				Heading:  polar.V{1, 0},
+				Velocity: vector.V{0, 0},
+
+				MaxVelocity: c.maxVelocity,
+			})
+
+			ClampVelocity(a, c.v.M())
+			if !vector.Within(c.v, c.want) {
+				t.Errorf("ClampVelocity() = %v, want = %v", c.v, c.want)
 			}
 		})
 	}
@@ -442,7 +465,7 @@ func TestSetCollisionVelocity(t *testing.T) {
 	}
 }
 
-func TestSetHeading(t *testing.T) {
+func TestClampHeading(t *testing.T) {
 	type config struct {
 		name  string
 		v     vector.V
@@ -489,7 +512,7 @@ func TestSetHeading(t *testing.T) {
 			})
 
 			gotH := polar.M{0, 0}
-			SetHeading(a, time.Second, c.v.M(), gotH)
+			ClampHeading(a, time.Second, c.v.M(), gotH)
 			if !vector.Within(c.v, c.wantV) {
 				t.Errorf("v = %v, want = %v", c.v, c.wantV)
 			}
