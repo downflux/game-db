@@ -17,10 +17,10 @@ import (
 type O struct {
 	Position vector.V
 
-	// Velocity is the target velocity of the agent. This is directly
+	// TargetVelocity is the target velocity of the agent. This is directly
 	// mutable by the end-target, but may not reflect the actual velocity of
 	// the agent.
-	Velocity vector.V
+	TargetVelocity vector.V
 
 	// Radius is a non-negative number representing the size of the agent.
 	Radius  float64
@@ -37,7 +37,7 @@ type A struct {
 	id id.ID
 
 	position vector.M
-	velocity vector.M
+	target   vector.M
 	radius   float64
 
 	// tv is the actual tick-to-tick velocity. This is used for smoothing
@@ -61,7 +61,7 @@ func (a *A) ID() id.ID { return a.id }
 
 func (a *A) Mask() mask.M                { return a.mask }
 func (a *A) Position() vector.V          { return a.position.V() }
-func (a *A) Velocity() vector.V          { return a.velocity.V() }
+func (a *A) TargetVelocity() vector.V    { return a.target.V() }
 func (a *A) Radius() float64             { return a.radius }
 func (a *A) Heading() polar.V            { return a.heading.V() }
 func (a *A) MaxVelocity() float64        { return a.maxVelocity }
@@ -82,16 +82,16 @@ func New(o O) *A {
 
 	p := vector.V([]float64{0, 0}).M()
 	p.Copy(o.Position)
-	v := vector.V([]float64{0, 0}).M()
-	v.Copy(o.Velocity)
+	target := vector.V([]float64{0, 0}).M()
+	target.Copy(o.TargetVelocity)
 	h := polar.V([]float64{0, 0}).M()
 	h.Copy(polar.Normalize(o.Heading))
 	tv := vector.V([]float64{0, 0}).M()
-	tv.Copy(o.Velocity)
+	tv.Copy(o.TargetVelocity)
 
 	a := &A{
 		position: p,
-		velocity: v,
+		target:   target,
 		tv:       tv,
 		radius:   o.Radius,
 		heading:  h,

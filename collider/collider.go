@@ -235,16 +235,16 @@ func (c *C) SetPosition(x id.ID, v vector.V) {
 	}
 }
 
-// SetVelocity directly sets the agent's new velocity vector. This function is
-// called when an agent's goal vector is updated. This function may be called
+// SetTargetVelocity sets the agent's new target velocity vector. This function
+// is called when an agent's goal vector is updated. This function may be called
 // concurrently.
-func (c *C) SetVelocity(x id.ID, v vector.V) {
+func (c *C) SetTargetVelocity(x id.ID, v vector.V) {
 	// SetVelocity does not mutate the BVH, but the central Tick function
 	// does need to read the velocity.
 	c.bvhL.RLock()
 	defer c.bvhL.RUnlock()
 
-	c.getOrDie(x).Velocity().M().Copy(v)
+	c.getOrDie(x).TargetVelocity().M().Copy(v)
 }
 
 func (c *C) generate() []result {
@@ -270,7 +270,7 @@ func (c *C) generate() []result {
 			for _, a := range c.projectiles {
 				out <- result{
 					agent: a,
-					v:     a.Velocity(),
+					v:     a.TargetVelocity(),
 				}
 			}
 		}(out)
@@ -283,7 +283,7 @@ func (c *C) generate() []result {
 					// TODO(minkezhang): Investigate what
 					// happens if we change this velocity to
 					// the nearest 8-directional alignment.
-					v.Copy(a.Velocity())
+					v.Copy(a.TargetVelocity())
 
 					aabb := agent.AABB(a.Position(), a.Radius())
 					ns := c.query(aabb, func(b *agent.A) bool { return collider.IsSquishableColliding(a, b) })

@@ -44,11 +44,11 @@ func TestQueryFeatures(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position: vector.V{5, 15},
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Radius:   5,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{5, 15},
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Radius:         5,
+				Mask:           mask.MSizeSmall,
 			})
 			f := collider.InsertFeature(feature.O{
 				Min: vector.V{10, 10},
@@ -65,11 +65,11 @@ func TestQueryFeatures(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position: vector.V{9, 10},
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{9, 10},
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			f := collider.InsertFeature(feature.O{
 				Min: vector.V{10, 10},
@@ -86,11 +86,11 @@ func TestQueryFeatures(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position: vector.V{5, 5},
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Radius:   5,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{5, 5},
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Radius:         5,
+				Mask:           mask.MSizeSmall,
 			})
 			f := collider.InsertFeature(feature.O{
 				Min: vector.V{10, 10},
@@ -131,11 +131,11 @@ func TestQuery(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position: vector.V{10, 10},
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{10, 10},
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			return config{
 				name:     "Exclude/Self",
@@ -148,26 +148,26 @@ func TestQuery(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position: vector.V{10, 10},
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{10, 10},
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 
 			b := collider.Insert(agent.O{
-				Position: a.Position(),
-				Velocity: a.Velocity(),
-				Heading:  a.Heading(),
-				Radius:   a.Radius(),
-				Mask:     mask.MSizeSmall,
+				Position:       a.Position(),
+				TargetVelocity: a.TargetVelocity(),
+				Heading:        a.Heading(),
+				Radius:         a.Radius(),
+				Mask:           mask.MSizeSmall,
 			})
 			collider.Insert(agent.O{
-				Position: a.Position(),
-				Velocity: a.Velocity(),
-				Heading:  a.Heading(),
-				Radius:   a.Radius(),
-				Mask:     mask.MSizeProjectile,
+				Position:       a.Position(),
+				TargetVelocity: a.TargetVelocity(),
+				Heading:        a.Heading(),
+				Radius:         a.Radius(),
+				Mask:           mask.MSizeProjectile,
 			})
 			return config{
 				name:     "Exclude/Projectiles",
@@ -180,25 +180,25 @@ func TestQuery(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position: vector.V{10, 10},
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Radius:   1,
-				Mask:     mask.MSizeMedium,
+				Position:       vector.V{10, 10},
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Radius:         1,
+				Mask:           mask.MSizeMedium,
 			})
 			b := collider.Insert(agent.O{
-				Position: a.Position(),
-				Velocity: a.Velocity(),
-				Heading:  a.Heading(),
-				Radius:   a.Radius(),
-				Mask:     mask.MSizeLarge,
+				Position:       a.Position(),
+				TargetVelocity: a.TargetVelocity(),
+				Heading:        a.Heading(),
+				Radius:         a.Radius(),
+				Mask:           mask.MSizeLarge,
 			})
 			collider.Insert(agent.O{
-				Position: a.Position(),
-				Velocity: a.Velocity(),
-				Heading:  a.Heading(),
-				Radius:   a.Radius(),
-				Mask:     mask.MSizeSmall,
+				Position:       a.Position(),
+				TargetVelocity: a.TargetVelocity(),
+				Heading:        a.Heading(),
+				Radius:         a.Radius(),
+				Mask:           mask.MSizeSmall,
 			})
 			return config{
 				name:     "Exclude/Squishable",
@@ -234,39 +234,39 @@ func TestTick(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position: vector.V{0, 0},
-				Velocity: vector.V{1, 1},
-				Heading:  polar.V{1, math.Pi / 4},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{0, 0},
+				TargetVelocity: vector.V{1, 1},
+				Heading:        polar.V{1, math.Pi / 4},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			b := collider.Insert(agent.O{
-				Position: vector.V{0, 1},
-				Velocity: vector.V{0, -1},
-				Heading:  polar.V{1, 3 * math.Pi / 2},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{0, 1},
+				TargetVelocity: vector.V{0, -1},
+				Heading:        polar.V{1, 3 * math.Pi / 2},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			c := collider.Insert(agent.O{
-				Position: vector.V{0, -1},
-				Velocity: vector.V{0, 1},
-				Heading:  polar.V{1, math.Pi / 2},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{0, -1},
+				TargetVelocity: vector.V{0, 1},
+				Heading:        polar.V{1, math.Pi / 2},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			d := collider.Insert(agent.O{
-				Position: vector.V{1, 0},
-				Velocity: vector.V{-1, 0},
-				Heading:  polar.V{1, math.Pi},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{1, 0},
+				TargetVelocity: vector.V{-1, 0},
+				Heading:        polar.V{1, math.Pi},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			e := collider.Insert(agent.O{
-				Position: vector.V{-1, 0},
-				Velocity: vector.V{1, 0},
-				Heading:  polar.V{1, 2 * math.Pi},
-				Radius:   1,
-				Mask:     mask.MSizeSmall,
+				Position:       vector.V{-1, 0},
+				TargetVelocity: vector.V{1, 0},
+				Heading:        polar.V{1, 2 * math.Pi},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			return config{
 				name:     "Stuck",
@@ -284,12 +284,12 @@ func TestTick(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position:    vector.V{10, 10},
-				Velocity:    vector.V{1, 1},
-				MaxVelocity: math.Sqrt(2),
-				Heading:     polar.V{1, math.Pi / 4},
-				Radius:      1,
-				Mask:        mask.MSizeSmall,
+				Position:       vector.V{10, 10},
+				TargetVelocity: vector.V{1, 1},
+				MaxVelocity:    math.Sqrt(2),
+				Heading:        polar.V{1, math.Pi / 4},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			return config{
 				name:     "Trivial",
@@ -303,20 +303,20 @@ func TestTick(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position:    vector.V{10, 10},
-				Velocity:    vector.V{0, 1},
-				MaxVelocity: 1,
-				Heading:     polar.V{1, math.Pi / 2},
-				Radius:      1,
-				Mask:        mask.MSizeSmall,
+				Position:       vector.V{10, 10},
+				TargetVelocity: vector.V{0, 1},
+				MaxVelocity:    1,
+				Heading:        polar.V{1, math.Pi / 2},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			b := collider.Insert(agent.O{
-				Position:    vector.V{10, 12},
-				Velocity:    vector.V{0, -1},
-				MaxVelocity: 1,
-				Heading:     polar.V{1, 3 * math.Pi / 2},
-				Radius:      1,
-				Mask:        mask.MSizeSmall,
+				Position:       vector.V{10, 12},
+				TargetVelocity: vector.V{0, -1},
+				MaxVelocity:    1,
+				Heading:        polar.V{1, 3 * math.Pi / 2},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			return config{
 				name:     "Collision",
@@ -331,20 +331,20 @@ func TestTick(t *testing.T) {
 		func() config {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
-				Position:    vector.V{10, 10},
-				Velocity:    vector.V{0, 1},
-				MaxVelocity: 1,
-				Heading:     polar.V{1, math.Pi / 2},
-				Radius:      1,
-				Mask:        mask.MSizeSmall,
+				Position:       vector.V{10, 10},
+				TargetVelocity: vector.V{0, 1},
+				MaxVelocity:    1,
+				Heading:        polar.V{1, math.Pi / 2},
+				Radius:         1,
+				Mask:           mask.MSizeSmall,
 			})
 			b := collider.Insert(agent.O{
-				Position:    vector.V{10, 12},
-				Velocity:    vector.V{0, -1},
-				MaxVelocity: 1,
-				Heading:     polar.V{1, 3 * math.Pi / 2},
-				Radius:      1,
-				Mask:        mask.MSizeProjectile,
+				Position:       vector.V{10, 12},
+				TargetVelocity: vector.V{0, -1},
+				MaxVelocity:    1,
+				Heading:        polar.V{1, 3 * math.Pi / 2},
+				Radius:         1,
+				Mask:           mask.MSizeProjectile,
 			})
 			return config{
 				name:     "Collision/IgnoreProjectile",
@@ -360,7 +360,7 @@ func TestTick(t *testing.T) {
 			collider := New(DefaultO)
 			a := collider.Insert(agent.O{
 				Position:           vector.V{60.0040783686527, 80.40391843262739},
-				Velocity:           vector.V{10, 10},
+				TargetVelocity:     vector.V{10, 10},
 				Heading:            polar.V{1, 1.550798992821703},
 				Radius:             10,
 				MaxVelocity:        100,
@@ -433,7 +433,7 @@ func BenchmarkTick(b *testing.B) {
 				collider.Insert(agent.O{
 					Radius:             R,
 					Position:           rv(min, max),
-					Velocity:           rv(-1, 1),
+					TargetVelocity:     rv(-1, 1),
 					MaxVelocity:        60,
 					MaxAcceleration:    10,
 					MaxAngularVelocity: math.Pi / 4,
