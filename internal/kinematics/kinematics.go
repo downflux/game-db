@@ -119,7 +119,7 @@ func ClampVelocity(a *agent.A, v vector.M) {
 
 func ClampAcceleration(a *agent.A, v vector.M, d time.Duration) {
 	t := float64(d) / float64(time.Second)
-	mtv := vector.Magnitude(agent.TickVelocity(a))
+	mtv := vector.Magnitude(a.Velocity())
 	mv := vector.Magnitude(v.V())
 	// Only clamp the velocity if the agent is speeding up. We want to
 	// prevent collisions at all costs, so the braking acceleration is
@@ -144,7 +144,6 @@ func ClampHeading(a *agent.A, d time.Duration, v vector.M, h polar.M) {
 		return
 	}
 
-	h.Copy(a.Heading())
 	p := polar.Polar(v.V())
 
 	// We do not need to worry about scaling v by t, as we only care about

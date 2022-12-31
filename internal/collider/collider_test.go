@@ -20,9 +20,9 @@ func TestIsColliding(t *testing.T) {
 	configs := []config{
 		func() config {
 			a := agent.New(agent.O{
-				Heading:  polar.V{1, 0},
-				Velocity: vector.V{0, 0},
-				Position: vector.V{1, 1},
+				Heading:        polar.V{1, 0},
+				TargetVelocity: vector.V{0, 0},
+				Position:       vector.V{1, 1},
 			})
 			agent.SetID(a, 1)
 			return config{
@@ -34,17 +34,17 @@ func TestIsColliding(t *testing.T) {
 		}(),
 		func() config {
 			a := agent.New(agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
+				Position:       vector.V{1, 1},
+				Radius:         1,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
 			})
 			b := agent.New(agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeProjectile,
+				Position:       vector.V{1, 1},
+				Radius:         1,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Mask:           mask.MSizeProjectile,
 			})
 			agent.SetID(a, 1)
 			agent.SetID(b, 2)
@@ -57,18 +57,18 @@ func TestIsColliding(t *testing.T) {
 		}(),
 		func() config {
 			a := agent.New(agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
+				Position:       vector.V{1, 1},
+				Radius:         1,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Mask:           mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
 			})
 			b := agent.New(agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainLand | mask.MTerrainAccessibleLand,
+				Position:       vector.V{1, 1},
+				Radius:         1,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Mask:           mask.MSizeSmall | mask.MTerrainLand | mask.MTerrainAccessibleLand,
 			})
 			agent.SetID(a, 1)
 			agent.SetID(b, 2)
@@ -81,18 +81,18 @@ func TestIsColliding(t *testing.T) {
 		}(),
 		func() config {
 			a := agent.New(agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
+				Position:       vector.V{1, 1},
+				Radius:         1,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Mask:           mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
 			})
 			b := agent.New(agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
+				Position:       vector.V{1, 1},
+				Radius:         1,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Mask:           mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
 			})
 			agent.SetID(a, 1)
 			agent.SetID(b, 2)

@@ -63,9 +63,9 @@ func TestClampFeatureCollisionVelocity(t *testing.T) {
 			v.Copy(c.v)
 
 			a := agent.New(agent.O{
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Position: c.p,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Position:       c.p,
 			})
 			f := feature.New(feature.O{
 				Min: vector.V(c.aabb.Min()),
@@ -112,15 +112,15 @@ func TestClampCollisionVelocity(t *testing.T) {
 			v.Copy(c.v)
 
 			a := agent.New(agent.O{
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Position: c.p,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Position:       c.p,
 			})
 			agent.SetID(a, 1)
 			b := agent.New(agent.O{
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Position: c.q,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Position:       c.q,
 			})
 			agent.SetID(b, 2)
 			ClampCollisionVelocity(a, b, v)
@@ -164,7 +164,7 @@ func TestClampAcceleration(t *testing.T) {
 				Heading:  polar.V{1, 0},
 				Position: vector.V{0, 0},
 
-				Velocity:        c.tv,
+				TargetVelocity:  c.tv,
 				MaxAcceleration: c.maxAcceleration,
 			})
 
@@ -203,9 +203,9 @@ func TestClampVelocity(t *testing.T) {
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
 			a := agent.New(agent.O{
-				Position: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Velocity: vector.V{0, 0},
+				Position:       vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				TargetVelocity: vector.V{0, 0},
 
 				MaxVelocity: c.maxVelocity,
 			})
@@ -337,9 +337,9 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			v.Copy(c.v)
 
 			a := agent.New(agent.O{
-				Heading:  polar.V{1, 0},
-				Velocity: vector.V{0, 0},
-				Position: c.p,
+				Heading:        polar.V{1, 0},
+				TargetVelocity: vector.V{0, 0},
+				Position:       c.p,
 			})
 			for _, aabb := range c.aabbs {
 				f := feature.New(feature.O{
@@ -443,16 +443,16 @@ func TestSetCollisionVelocity(t *testing.T) {
 			v.Copy(c.v)
 
 			a := agent.New(agent.O{
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Position: c.p,
+				TargetVelocity: vector.V{0, 0},
+				Heading:        polar.V{1, 0},
+				Position:       c.p,
 			})
 			agent.SetID(a, 1)
 			for _, q := range c.qs {
 				b := agent.New(agent.O{
-					Velocity: vector.V{0, 0},
-					Heading:  polar.V{1, 0},
-					Position: q,
+					TargetVelocity: vector.V{0, 0},
+					Heading:        polar.V{1, 0},
+					Position:       q,
 				})
 				agent.SetID(b, 2)
 				SetCollisionVelocity(a, b, v)
@@ -504,20 +504,24 @@ func TestClampHeading(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
+			h := polar.M{0, 0}
+			h.Copy(c.h)
+			v := vector.M{0, 0}
+			v.Copy(c.v)
+
 			a := agent.New(agent.O{
-				Velocity:           vector.V{0, 0},
+				TargetVelocity:     vector.V{0, 0},
 				Position:           vector.V{0, 0},
 				Heading:            c.h,
 				MaxAngularVelocity: c.omega,
 			})
 
-			gotH := polar.M{0, 0}
-			ClampHeading(a, time.Second, c.v.M(), gotH)
-			if !vector.Within(c.v, c.wantV) {
-				t.Errorf("v = %v, want = %v", c.v, c.wantV)
+			ClampHeading(a, time.Second, v, h)
+			if !vector.Within(v.V(), c.wantV) {
+				t.Errorf("v = %v, want = %v", v, c.wantV)
 			}
-			if !polar.Within(gotH.V(), c.wantH) {
-				t.Errorf("h = %v, want = %v", gotH, c.wantH)
+			if !polar.Within(h.V(), c.wantH) {
+				t.Errorf("h = %v, want = %v", h, c.wantH)
 			}
 		})
 	}
