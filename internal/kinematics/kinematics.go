@@ -85,8 +85,8 @@ func ClampFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 //
 // N.B.: This may generate a velocity vector which flips back into a forbidden
 // zone. In order to take this into account, the caller must do two passes,
-// where the second pass calls SetCollisionVelocityStrict to force the velocity
-// to zero in case of continued velocity violations.
+// where the second pass calls ClampCollisionVelocity to force the velocity to
+// zero in case of continued velocity violations.
 func SetCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
 	// Find the unit collision vector pointing from a to b.
 	buf := vector.M{0, 0}
