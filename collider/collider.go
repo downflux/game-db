@@ -371,8 +371,7 @@ func (c *C) Tick(d time.Duration) {
 
 				r.agent.Position().M().Add(vector.Scale(t, r.velocity))
 				r.agent.Heading().M().Copy(h.V())
-
-				agent.SetVelocity(r.agent, r.velocity.M())
+				r.agent.Velocity().M().Copy(r.velocity)
 			}
 		}(in)
 	}

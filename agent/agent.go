@@ -87,13 +87,13 @@ func New(o O) *A {
 	target.Copy(o.TargetVelocity)
 	h := polar.V([]float64{0, 0}).M()
 	h.Copy(polar.Normalize(o.Heading))
-	velocity := vector.V([]float64{0, 0}).M()
-	velocity.Copy(o.TargetVelocity)
+	v := vector.V([]float64{0, 0}).M()
+	v.Copy(o.TargetVelocity)
 
 	a := &A{
 		position: p,
 		target:   target,
-		velocity: velocity,
+		velocity: v,
 		radius:   o.Radius,
 		heading:  h,
 
@@ -119,5 +119,3 @@ func AABB(p vector.V, r float64) hyperrectangle.R {
 		},
 	)
 }
-
-func SetVelocity(a *A, v vector.M) { a.velocity.Copy(v.V()) }
