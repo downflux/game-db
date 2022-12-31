@@ -247,7 +247,7 @@ func (c *C) SetTargetVelocity(x id.ID, v vector.V) {
 	c.getOrDie(x).TargetVelocity().M().Copy(v)
 }
 
-func (c *C) generate() []result {
+func (c *C) generate(d time.Duration) []result {
 	results := make([]result, 0, 256)
 
 	in := make(chan *agent.A, 256)
@@ -271,6 +271,7 @@ func (c *C) generate() []result {
 				out <- result{
 					agent:    a,
 					velocity: a.TargetVelocity(),
+					heading: a.Heading(),
 				}
 			}
 		}(out)
@@ -316,9 +317,20 @@ func (c *C) generate() []result {
 						kinematics.ClampCollisionVelocity(a, c.agents[y], v)
 					}
 
+					kinematics.ClampVelocity(a, v)
+					kinematics.ClampAcceleration(a, v, d)
+
+					// N.B.: The velocity can be further reduced to
+					// zero here due to the physical limitations of
+					// the agent.
+					h := polar.M{0, 0}
+					h.Copy(a.Heading())
+					kinematics.ClampHeading(a, d, v, h)
+
 					out <- result{
 						agent:    a,
 						velocity: v.V(),
+						heading:  h.V(),
 					}
 				}
 			}(in, out)
@@ -344,7 +356,7 @@ func (c *C) Tick(d time.Duration) {
 
 	in := make(chan result, 256)
 	go func(ch chan<- result) {
-		for _, r := range c.generate() {
+		for _, r := range c.generate(d) {
 			ch <- r
 		}
 		close(ch)
@@ -359,18 +371,8 @@ func (c *C) Tick(d time.Duration) {
 		go func(ch <-chan result) {
 			defer wg.Done()
 			for r := range ch {
-				kinematics.ClampVelocity(r.agent, r.velocity.M())
-				kinematics.ClampAcceleration(r.agent, r.velocity.M(), d)
-
-				// N.B.: The velocity can be further reduced to
-				// zero here due to the physical limitations of
-				// the agent.
-				h := polar.M{0, 0}
-				h.Copy(r.agent.Heading())
-				kinematics.ClampHeading(r.agent, d, r.velocity.M(), h)
-
 				r.agent.Position().M().Add(vector.Scale(t, r.velocity))
-				r.agent.Heading().M().Copy(h.V())
+				r.agent.Heading().M().Copy(r.heading)
 				r.agent.Velocity().M().Copy(r.velocity)
 			}
 		}(in)
@@ -387,4 +389,5 @@ func (c *C) Tick(d time.Duration) {
 type result struct {
 	agent    *agent.A
 	velocity vector.V
+	heading  polar.V
 }
