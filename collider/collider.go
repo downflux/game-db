@@ -269,8 +269,8 @@ func (c *C) generate() []result {
 			defer wg.Done()
 			for _, a := range c.projectiles {
 				out <- result{
-					agent: a,
-					v:     a.TargetVelocity(),
+					agent:    a,
+					velocity: a.TargetVelocity(),
 				}
 			}
 		}(out)
@@ -280,43 +280,45 @@ func (c *C) generate() []result {
 				defer wg.Done()
 				for a := range in {
 					v := vector.M{0, 0}
-					// TODO(minkezhang): Investigate what
-					// happens if we change this velocity to
-					// the nearest 8-directional alignment.
 					v.Copy(a.TargetVelocity())
 
 					aabb := agent.AABB(a.Position(), a.Radius())
 					ns := c.query(aabb, func(b *agent.A) bool { return collider.IsSquishableColliding(a, b) })
 					fs := c.queryFeatures(aabb, func(f *feature.F) bool { return collider.IsCollidingFeature(a, f) })
 
+					// Check for collisions which the agent
+					// cares about, e.g. care about
+					// squishability. These functions set
+					// the input vector v to ensure that the
+					// normal components of the velocity is
+					// filtered out for each individual
+					// entity. However, this method is not
+					// always reliable, and a multi-body
+					// collision may flip the velocity back
+					// into the body of an existing entity.
 					for _, y := range fs {
 						kinematics.SetFeatureCollisionVelocity(a, c.features[y], v)
 					}
-
-					// Check for collisions which the agent
-					// cares about, e.g. care about
-					// squishability.
 					for _, y := range ns {
 						kinematics.SetCollisionVelocity(a, c.agents[y], v)
 					}
 
 					// Second pass ensures agent is not
 					// colliding with any static features.
+					// or neighbors and forces the velocity
+					// to zero if it has flip-flopped back
+					// into the forbidden zone of another
+					// entity.
 					for _, y := range fs {
 						kinematics.ClampFeatureCollisionVelocity(a, c.features[y], v)
 					}
-
-					// Second pass across neighbors forces
-					// the velocity to zero if a velocity
-					// has flip-flopped back into the
-					// forbidden zone of another agent.
 					for _, y := range ns {
 						kinematics.ClampCollisionVelocity(a, c.agents[y], v)
 					}
 
 					out <- result{
-						agent: a,
-						v:     v.V(),
+						agent:    a,
+						velocity: v.V(),
 					}
 				}
 			}(in, out)
@@ -357,19 +359,20 @@ func (c *C) Tick(d time.Duration) {
 		go func(ch <-chan result) {
 			defer wg.Done()
 			for r := range ch {
-				kinematics.ClampVelocity(r.agent, r.v.M())
-				kinematics.ClampAcceleration(r.agent, r.v.M(), d)
+				kinematics.ClampVelocity(r.agent, r.velocity.M())
+				kinematics.ClampAcceleration(r.agent, r.velocity.M(), d)
 
 				// N.B.: The velocity can be further reduced to
 				// zero here due to the physical limitations of
 				// the agent.
-				h := polar.V{1, r.agent.Heading().Theta()}
-				kinematics.ClampHeading(r.agent, d, r.v.M(), h.M())
+				h := polar.M{0, 0}
+				h.Copy(r.agent.Heading())
+				kinematics.ClampHeading(r.agent, d, r.velocity.M(), h)
 
-				r.agent.Position().M().Add(vector.Scale(t, r.v))
-				r.agent.Heading().M().Copy(h)
+				r.agent.Position().M().Add(vector.Scale(t, r.velocity))
+				r.agent.Heading().M().Copy(h.V())
 
-				agent.SetTickVelocity(r.agent, r.v.M())
+				agent.SetVelocity(r.agent, r.velocity.M())
 			}
 		}(in)
 	}
@@ -383,6 +386,6 @@ func (c *C) Tick(d time.Duration) {
 }
 
 type result struct {
-	agent *agent.A
-	v     vector.V
+	agent    *agent.A
+	velocity vector.V
 }

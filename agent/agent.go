@@ -40,9 +40,9 @@ type A struct {
 	target   vector.M
 	radius   float64
 
-	// tv is the actual tick-to-tick velocity. This is used for smoothing
+	// velocity is the actual tick-to-tick velocity. This is used for smoothing
 	// over acceleration values.
-	tv vector.M
+	velocity vector.M
 
 	// heading is a unit polar vector whose angular component is oriented to
 	// the positive X-axis. The angle is calculated according to normal 2D
@@ -62,6 +62,7 @@ func (a *A) ID() id.ID { return a.id }
 func (a *A) Mask() mask.M                { return a.mask }
 func (a *A) Position() vector.V          { return a.position.V() }
 func (a *A) TargetVelocity() vector.V    { return a.target.V() }
+func (a *A) Velocity() vector.V          { return a.velocity.V() }
 func (a *A) Radius() float64             { return a.radius }
 func (a *A) Heading() polar.V            { return a.heading.V() }
 func (a *A) MaxVelocity() float64        { return a.maxVelocity }
@@ -86,13 +87,13 @@ func New(o O) *A {
 	target.Copy(o.TargetVelocity)
 	h := polar.V([]float64{0, 0}).M()
 	h.Copy(polar.Normalize(o.Heading))
-	tv := vector.V([]float64{0, 0}).M()
-	tv.Copy(o.TargetVelocity)
+	velocity := vector.V([]float64{0, 0}).M()
+	velocity.Copy(o.TargetVelocity)
 
 	a := &A{
 		position: p,
 		target:   target,
-		tv:       tv,
+		velocity: velocity,
 		radius:   o.Radius,
 		heading:  h,
 
@@ -119,5 +120,4 @@ func AABB(p vector.V, r float64) hyperrectangle.R {
 	)
 }
 
-func SetTickVelocity(a *A, v vector.M) { a.tv.Copy(v.V()) }
-func TickVelocity(a *A) vector.V       { return a.tv.V() }
+func SetVelocity(a *A, v vector.M) { a.velocity.Copy(v.V()) }

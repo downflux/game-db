@@ -504,6 +504,11 @@ func TestClampHeading(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
+			h := polar.M{0, 0}
+			h.Copy(c.h)
+			v := vector.M{0, 0}
+			v.Copy(c.v)
+
 			a := agent.New(agent.O{
 				TargetVelocity:     vector.V{0, 0},
 				Position:           vector.V{0, 0},
@@ -511,13 +516,12 @@ func TestClampHeading(t *testing.T) {
 				MaxAngularVelocity: c.omega,
 			})
 
-			gotH := polar.M{0, 0}
-			ClampHeading(a, time.Second, c.v.M(), gotH)
-			if !vector.Within(c.v, c.wantV) {
-				t.Errorf("v = %v, want = %v", c.v, c.wantV)
+			ClampHeading(a, time.Second, v, h)
+			if !vector.Within(v.V(), c.wantV) {
+				t.Errorf("v = %v, want = %v", v, c.wantV)
 			}
-			if !polar.Within(gotH.V(), c.wantH) {
-				t.Errorf("h = %v, want = %v", gotH, c.wantH)
+			if !polar.Within(h.V(), c.wantH) {
+				t.Errorf("h = %v, want = %v", h, c.wantH)
 			}
 		})
 	}
