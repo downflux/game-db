@@ -24,32 +24,12 @@ func TestIsColliding(t *testing.T) {
 				Heading:  polar.V{1, 0},
 				Velocity: vector.V{0, 0},
 				Position: vector.V{1, 1},
+				Flags:    flags.FSizeSmall,
 			})
 			return config{
 				name: "NoCollide/SelfID",
 				a:    a,
 				b:    a,
-				want: false,
-			}
-		}(),
-		func() config {
-			a := mock.New(1, agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-			})
-			b := mock.New(2, agent.O{
-				Position: vector.V{1, 1},
-				Radius:   1,
-				Velocity: vector.V{0, 0},
-				Heading:  polar.V{1, 0},
-				Flags:    flags.FSizeProjectile,
-			})
-			return config{
-				name: "NoCollide/Projectile",
-				a:    a,
-				b:    b,
 				want: false,
 			}
 		}(),

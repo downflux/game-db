@@ -12,6 +12,7 @@ import (
 	"github.com/downflux/go-database/database"
 	"github.com/downflux/go-database/feature"
 	"github.com/downflux/go-database/flags"
+	"github.com/downflux/go-database/projectile"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 )
@@ -161,11 +162,10 @@ func TestTick(t *testing.T) {
 				Radius:         1,
 				Flags:          flags.FSizeSmall,
 			})
-			b := db.AgentInsert(agent.O{
+			db.ProjectileInsert(projectile.O{
 				Position:       vector.V{10, 12},
 				TargetVelocity: vector.V{0, -1},
 				Velocity:       vector.V{0, -1},
-				MaxVelocity:    1,
 				Heading:        polar.V{1, 3 * math.Pi / 2},
 				Radius:         1,
 				Flags:          flags.FSizeProjectile,
@@ -177,7 +177,6 @@ func TestTick(t *testing.T) {
 				d:        100 * time.Millisecond,
 				want: map[id.ID]vector.V{
 					a.ID(): vector.V{10, 10.1},
-					b.ID(): vector.V{10, 11.9},
 				},
 			}
 		}(),

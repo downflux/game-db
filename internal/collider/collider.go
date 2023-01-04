@@ -18,9 +18,6 @@ func IsColliding(a agent.RO, b agent.RO) bool {
 	}
 
 	m, n := a.Flags(), b.Flags()
-	if (m|n)&flags.FSizeProjectile != 0 {
-		return false
-	}
 
 	// Agents are allowed to overlap if (only) one of them is in the air.
 	if (m^n)&flags.FTerrainAir == flags.FTerrainAir {
