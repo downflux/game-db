@@ -4,8 +4,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/downflux/go-collider/agent"
-	"github.com/downflux/go-collider/feature"
+	"github.com/downflux/go-database/agent"
+	"github.com/downflux/go-database/feature"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
@@ -29,7 +29,7 @@ const (
 // This is a much simpler way to deal with the three body problem -- this, the
 // case of when the constant "flip-flip" from SetCollisionVelocity can
 // accidentally flip the velocity vector back into a neighbor.
-func ClampCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
+func ClampCollisionVelocity(a agent.RO, b agent.RO, v vector.M) {
 	// Find the unit collision vector pointing from a to b.
 	buf := vector.M{0, 0}
 	buf.Copy(b.Position())
@@ -43,7 +43,7 @@ func ClampCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
 	}
 }
 
-func ClampFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
+func ClampFeatureCollisionVelocity(a agent.RO, f feature.RO, v vector.M) {
 	n := chr.N(f.AABB(), a.Position()).M()
 	n.Scale(-1)
 	if c := vector.Dot(n.V(), v.V()); c > tolerance {
@@ -73,7 +73,7 @@ func ClampFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 //
 // To generate a final collision vector between several colliding objects, this
 // function should be called iteratively for a single object and other
-// colliders, e.g.
+// databases, e.g.
 //
 //	v := vector.M{0, 0}
 //	v.Copy(a.Velocity())
@@ -87,7 +87,7 @@ func ClampFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 // zone. In order to take this into account, the caller must do two passes,
 // where the second pass calls ClampCollisionVelocity to force the velocity to
 // zero in case of continued velocity violations.
-func SetCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
+func SetCollisionVelocity(a agent.RO, b agent.RO, v vector.M) {
 	// Find the unit collision vector pointing from a to b.
 	buf := vector.M{0, 0}
 	buf.Copy(b.Position())
@@ -102,7 +102,7 @@ func SetCollisionVelocity(a *agent.A, b *agent.A, v vector.M) {
 	}
 }
 
-func SetFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
+func SetFeatureCollisionVelocity(a agent.RO, f feature.RO, v vector.M) {
 	n := chr.N(f.AABB(), a.Position()).M()
 	n.Scale(-1)
 	if c := vector.Dot(n.V(), v.V()); c > tolerance {
@@ -111,13 +111,13 @@ func SetFeatureCollisionVelocity(a *agent.A, f *feature.F, v vector.M) {
 	}
 }
 
-func ClampVelocity(a *agent.A, v vector.M) {
+func ClampVelocity(a agent.RO, v vector.M) {
 	if c := vector.Magnitude(v.V()); c > a.MaxVelocity() {
 		v.Scale(a.MaxVelocity() / c)
 	}
 }
 
-func ClampAcceleration(a *agent.A, v vector.M, d time.Duration) {
+func ClampAcceleration(a agent.RO, v vector.M, d time.Duration) {
 	t := float64(d) / float64(time.Second)
 	mtv := vector.Magnitude(a.Velocity())
 	mv := vector.Magnitude(v.V())
@@ -139,7 +139,7 @@ func ClampAcceleration(a *agent.A, v vector.M, d time.Duration) {
 // simulated values for the next tick.
 //
 // TODO(minkezhang): Handle agents that can reverse.
-func ClampHeading(a *agent.A, d time.Duration, v vector.M, h polar.M) {
+func ClampHeading(a agent.RO, d time.Duration, v vector.M, h polar.M) {
 	if epsilon.Within(vector.Magnitude(v.V()), 0) {
 		return
 	}
