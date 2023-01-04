@@ -6,12 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/downflux/go-collider/agent"
-	"github.com/downflux/go-collider/feature"
+	"github.com/downflux/go-database/agent"
+	"github.com/downflux/go-database/feature"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
+	magent "github.com/downflux/go-database/agent/mock"
+	mfeature "github.com/downflux/go-database/feature/mock"
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
@@ -62,12 +64,12 @@ func TestClampFeatureCollisionVelocity(t *testing.T) {
 			v := vector.M{0, 0}
 			v.Copy(c.v)
 
-			a := agent.New(agent.O{
+			a := magent.New(0, agent.O{
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
 				Position: c.p,
 			})
-			f := feature.New(feature.O{
+			f := mfeature.New(0, feature.O{
 				Min: vector.V(c.aabb.Min()),
 				Max: vector.V(c.aabb.Max()),
 			})
@@ -111,18 +113,16 @@ func TestClampCollisionVelocity(t *testing.T) {
 			v := vector.M{0, 0}
 			v.Copy(c.v)
 
-			a := agent.New(agent.O{
+			a := magent.New(1, agent.O{
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
 				Position: c.p,
 			})
-			agent.SetID(a, 1)
-			b := agent.New(agent.O{
+			b := magent.New(2, agent.O{
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
 				Position: c.q,
 			})
-			agent.SetID(b, 2)
 			ClampCollisionVelocity(a, b, v)
 
 			if !vector.Within(v.V(), c.want) {
@@ -160,7 +160,7 @@ func TestClampAcceleration(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
-			a := agent.New(agent.O{
+			a := magent.New(0, agent.O{
 				Heading:  polar.V{1, 0},
 				Position: vector.V{0, 0},
 
@@ -202,7 +202,7 @@ func TestClampVelocity(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
-			a := agent.New(agent.O{
+			a := magent.New(0, agent.O{
 				Position: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
 				Velocity: vector.V{0, 0},
@@ -336,13 +336,13 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			v := vector.M{0, 0}
 			v.Copy(c.v)
 
-			a := agent.New(agent.O{
+			a := magent.New(0, agent.O{
 				Heading:  polar.V{1, 0},
 				Velocity: vector.V{0, 0},
 				Position: c.p,
 			})
 			for _, aabb := range c.aabbs {
-				f := feature.New(feature.O{
+				f := mfeature.New(0, feature.O{
 					Min: vector.V(aabb.Min()),
 					Max: vector.V(aabb.Max()),
 				})
@@ -442,19 +442,17 @@ func TestSetCollisionVelocity(t *testing.T) {
 			v := vector.M{0, 0}
 			v.Copy(c.v)
 
-			a := agent.New(agent.O{
+			a := magent.New(1, agent.O{
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
 				Position: c.p,
 			})
-			agent.SetID(a, 1)
 			for _, q := range c.qs {
-				b := agent.New(agent.O{
+				b := magent.New(2, agent.O{
 					Velocity: vector.V{0, 0},
 					Heading:  polar.V{1, 0},
 					Position: q,
 				})
-				agent.SetID(b, 2)
 				SetCollisionVelocity(a, b, v)
 			}
 
@@ -504,7 +502,7 @@ func TestClampHeading(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
-			a := agent.New(agent.O{
+			a := magent.New(0, agent.O{
 				Velocity:           vector.V{0, 0},
 				Position:           vector.V{0, 0},
 				Heading:            c.h,

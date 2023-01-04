@@ -1,9 +1,9 @@
 package collider
 
 import (
-	"github.com/downflux/go-collider/agent"
-	"github.com/downflux/go-collider/feature"
-	"github.com/downflux/go-collider/mask"
+	"github.com/downflux/go-database/agent"
+	"github.com/downflux/go-database/feature"
+	"github.com/downflux/go-database/flags"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
@@ -12,18 +12,18 @@ import (
 
 // IsColliding checks if two agents are actually physically overlapping. This
 // does not care about the extra logic for e.g. squishing.
-func IsColliding(a *agent.A, b *agent.A) bool {
+func IsColliding(a agent.RO, b agent.RO) bool {
 	if a.ID() == b.ID() {
 		return false
 	}
 
-	m, n := a.Mask(), b.Mask()
-	if (m|n)&mask.MSizeProjectile != 0 {
+	m, n := a.Flags(), b.Flags()
+	if (m|n)&flags.FSizeProjectile != 0 {
 		return false
 	}
 
 	// Agents are allowed to overlap if (only) one of them is in the air.
-	if (m^n)&mask.MTerrainAir == mask.MTerrainAir {
+	if (m^n)&flags.FTerrainAir == flags.FTerrainAir {
 		return false
 	}
 
@@ -35,10 +35,10 @@ func IsColliding(a *agent.A, b *agent.A) bool {
 
 }
 
-func IsSquishableColliding(a *agent.A, b *agent.A) bool {
+func IsSquishableColliding(a agent.RO, b agent.RO) bool {
 	if IsColliding(a, b) {
 		// TODO(minkezhang): Check for team.
-		if a.Mask()&mask.SizeCheck > b.Mask()&mask.SizeCheck {
+		if a.Flags()&flags.SizeCheck > b.Flags()&flags.SizeCheck {
 			return false
 		}
 		return true
@@ -46,16 +46,16 @@ func IsSquishableColliding(a *agent.A, b *agent.A) bool {
 	return false
 }
 
-func IsCollidingFeature(a *agent.A, f *feature.F) bool {
-	m, n := a.Mask(), f.Mask()
+func IsCollidingFeature(a agent.RO, f feature.RO) bool {
+	m, n := a.Flags(), f.Flags()
 
 	// Feature and agent are allowed to overlap if (only) one of them is in
 	// the air.
-	if (m^n)&mask.MTerrainAir == mask.MTerrainAir {
+	if (m^n)&flags.FTerrainAir == flags.FTerrainAir {
 		return false
 	}
 
-	if hyperrectangle.Disjoint(agent.AABB(a.Position(), a.Radius()), f.AABB()) {
+	if hyperrectangle.Disjoint(a.AABB(), f.AABB()) {
 		return false
 	}
 

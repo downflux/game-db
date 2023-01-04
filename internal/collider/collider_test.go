@@ -3,8 +3,9 @@ package collider
 import (
 	"testing"
 
-	"github.com/downflux/go-collider/agent"
-	"github.com/downflux/go-collider/mask"
+	"github.com/downflux/go-database/agent"
+	"github.com/downflux/go-database/agent/mock"
+	"github.com/downflux/go-database/flags"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 )
@@ -12,19 +13,18 @@ import (
 func TestIsColliding(t *testing.T) {
 	type config struct {
 		name string
-		a    *agent.A
-		b    *agent.A
+		a    agent.RO
+		b    agent.RO
 		want bool
 	}
 
 	configs := []config{
 		func() config {
-			a := agent.New(agent.O{
+			a := mock.New(1, agent.O{
 				Heading:  polar.V{1, 0},
 				Velocity: vector.V{0, 0},
 				Position: vector.V{1, 1},
 			})
-			agent.SetID(a, 1)
 			return config{
 				name: "NoCollide/SelfID",
 				a:    a,
@@ -33,21 +33,19 @@ func TestIsColliding(t *testing.T) {
 			}
 		}(),
 		func() config {
-			a := agent.New(agent.O{
+			a := mock.New(1, agent.O{
 				Position: vector.V{1, 1},
 				Radius:   1,
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
 			})
-			b := agent.New(agent.O{
+			b := mock.New(2, agent.O{
 				Position: vector.V{1, 1},
 				Radius:   1,
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeProjectile,
+				Flags:    flags.FSizeProjectile,
 			})
-			agent.SetID(a, 1)
-			agent.SetID(b, 2)
 			return config{
 				name: "NoCollide/Projectile",
 				a:    a,
@@ -56,22 +54,20 @@ func TestIsColliding(t *testing.T) {
 			}
 		}(),
 		func() config {
-			a := agent.New(agent.O{
+			a := mock.New(1, agent.O{
 				Position: vector.V{1, 1},
 				Radius:   1,
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
+				Flags:    flags.FSizeSmall | flags.FTerrainAir | flags.FTerrainAccessibleAir,
 			})
-			b := agent.New(agent.O{
+			b := mock.New(2, agent.O{
 				Position: vector.V{1, 1},
 				Radius:   1,
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainLand | mask.MTerrainAccessibleLand,
+				Flags:    flags.FSizeSmall | flags.FTerrainLand | flags.FTerrainAccessibleLand,
 			})
-			agent.SetID(a, 1)
-			agent.SetID(b, 2)
 			return config{
 				name: "NoCollide/ExclusiveAir",
 				a:    a,
@@ -80,22 +76,20 @@ func TestIsColliding(t *testing.T) {
 			}
 		}(),
 		func() config {
-			a := agent.New(agent.O{
+			a := mock.New(1, agent.O{
 				Position: vector.V{1, 1},
 				Radius:   1,
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
+				Flags:    flags.FSizeSmall | flags.FTerrainAir | flags.FTerrainAccessibleAir,
 			})
-			b := agent.New(agent.O{
+			b := mock.New(2, agent.O{
 				Position: vector.V{1, 1},
 				Radius:   1,
 				Velocity: vector.V{0, 0},
 				Heading:  polar.V{1, 0},
-				Mask:     mask.MSizeSmall | mask.MTerrainAir | mask.MTerrainAccessibleAir,
+				Flags:    flags.FSizeSmall | flags.FTerrainAir | flags.FTerrainAccessibleAir,
 			})
-			agent.SetID(a, 1)
-			agent.SetID(b, 2)
 			return config{
 				name: "Collide/BothAir",
 				a:    a,
