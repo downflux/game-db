@@ -111,6 +111,9 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 						kinematics.ClampCollisionVelocity(a, n, v)
 					}
 
+					kinematics.ClampVelocity(a, v)
+					kinematics.ClampAcceleration(a, v, d)
+
 					// N.B.: The velocity can be further reduced to
 					// zero here due to the physical limitations of
 					// the agent.
