@@ -57,7 +57,7 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 		wg.Add(c.poolSize)
 		go func(ch chan<- pm) {
 			defer wg.Done()
-			for p := range c.db.ProjectileList() {
+			for p := range c.db.ListProjectiles() {
 				pmsch <- pm{
 					projectile: p,
 					v:          p.TargetVelocity(),
@@ -67,7 +67,7 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 			close(ch)
 		}(pmsch)
 
-		in := c.db.AgentList()
+		in := c.db.ListAgents()
 		for i := 0; i < c.poolSize-1; i++ {
 			go func(out chan<- am) {
 				defer wg.Done()
@@ -76,8 +76,8 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 					v.Copy(a.TargetVelocity())
 
 					aabb := a.AABB()
-					ns := c.db.AgentQuery(aabb, func(b agent.RO) bool { return collider.IsSquishableColliding(a, b) })
-					fs := c.db.FeatureQuery(aabb, func(f feature.RO) bool { return collider.IsCollidingFeature(a, f) })
+					ns := c.db.QueryAgents(aabb, func(b agent.RO) bool { return collider.IsSquishableColliding(a, b) })
+					fs := c.db.QueryFeatures(aabb, func(f feature.RO) bool { return collider.IsCollidingFeature(a, f) })
 
 					for _, f := range fs {
 						kinematics.SetFeatureCollisionVelocity(a, f, v)
@@ -153,14 +153,14 @@ func (c *C) Tick(d time.Duration) {
 	ams, pms := c.generate(d)
 	// Concurrent BVH ams is not supported.
 	for _, r := range ams {
-		c.db.AgentSetPosition(r.agent.ID(), vector.Add(r.agent.Position(), vector.Scale(t, r.v)))
-		c.db.AgentSetHeading(r.agent.ID(), r.h)
-		c.db.AgentSetVelocity(r.agent.ID(), r.v)
+		c.db.SetAgentPosition(r.agent.ID(), vector.Add(r.agent.Position(), vector.Scale(t, r.v)))
+		c.db.SetAgentHeading(r.agent.ID(), r.h)
+		c.db.SetAgentVelocity(r.agent.ID(), r.v)
 	}
 	for _, r := range pms {
-		c.db.ProjectileSetPosition(r.projectile.ID(), vector.Add(r.projectile.Position(), vector.Scale(t, r.v)))
-		c.db.ProjectileSetHeading(r.projectile.ID(), r.h)
-		c.db.ProjectileSetVelocity(r.projectile.ID(), r.v)
+		c.db.SetProjectilePosition(r.projectile.ID(), vector.Add(r.projectile.Position(), vector.Scale(t, r.v)))
+		c.db.SetProjectileHeading(r.projectile.ID(), r.h)
+		c.db.SetProjectileVelocity(r.projectile.ID(), r.v)
 	}
 }
 

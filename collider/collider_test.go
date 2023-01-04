@@ -42,7 +42,7 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := database.New(database.DefaultO)
 			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
-			a := db.AgentInsert(agent.O{
+			a := db.InsertAgent(agent.O{
 				Position:       vector.V{0, 0},
 				TargetVelocity: vector.V{1, 1},
 				Velocity:       vector.V{1, 1},
@@ -50,7 +50,7 @@ func TestTick(t *testing.T) {
 				Radius:         1,
 				Flags:          flags.FSizeSmall,
 			})
-			b := db.AgentInsert(agent.O{
+			b := db.InsertAgent(agent.O{
 				Position:       vector.V{0, 1},
 				TargetVelocity: vector.V{0, -1},
 				Velocity:       vector.V{0, -1},
@@ -58,7 +58,7 @@ func TestTick(t *testing.T) {
 				Radius:         1,
 				Flags:          flags.FSizeSmall,
 			})
-			c := db.AgentInsert(agent.O{
+			c := db.InsertAgent(agent.O{
 				Position:       vector.V{0, -1},
 				TargetVelocity: vector.V{0, 1},
 				Velocity:       vector.V{0, 1},
@@ -66,7 +66,7 @@ func TestTick(t *testing.T) {
 				Radius:         1,
 				Flags:          flags.FSizeSmall,
 			})
-			d := db.AgentInsert(agent.O{
+			d := db.InsertAgent(agent.O{
 				Position:       vector.V{1, 0},
 				TargetVelocity: vector.V{-1, 0},
 				Velocity:       vector.V{-1, 0},
@@ -74,7 +74,7 @@ func TestTick(t *testing.T) {
 				Radius:         1,
 				Flags:          flags.FSizeSmall,
 			})
-			e := db.AgentInsert(agent.O{
+			e := db.InsertAgent(agent.O{
 				Position:       vector.V{-1, 0},
 				TargetVelocity: vector.V{1, 0},
 				Velocity:       vector.V{1, 0},
@@ -99,7 +99,7 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := database.New(database.DefaultO)
 			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
-			a := db.AgentInsert(agent.O{
+			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
 				TargetVelocity: vector.V{1, 1},
 				Velocity:       vector.V{1, 1},
@@ -121,7 +121,7 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := database.New(database.DefaultO)
 			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
-			a := db.AgentInsert(agent.O{
+			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
 				TargetVelocity: vector.V{0, 1},
 				Velocity:       vector.V{0, 1},
@@ -130,7 +130,7 @@ func TestTick(t *testing.T) {
 				Radius:         1,
 				Flags:          flags.FSizeSmall,
 			})
-			b := db.AgentInsert(agent.O{
+			b := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 12},
 				TargetVelocity: vector.V{0, -1},
 				Velocity:       vector.V{0, -1},
@@ -153,7 +153,7 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := database.New(database.DefaultO)
 			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
-			a := db.AgentInsert(agent.O{
+			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
 				TargetVelocity: vector.V{0, 1},
 				Velocity:       vector.V{0, 1},
@@ -162,7 +162,7 @@ func TestTick(t *testing.T) {
 				Radius:         1,
 				Flags:          flags.FSizeSmall,
 			})
-			db.ProjectileInsert(projectile.O{
+			db.InsertProjectile(projectile.O{
 				Position:       vector.V{10, 12},
 				TargetVelocity: vector.V{0, -1},
 				Velocity:       vector.V{0, -1},
@@ -183,7 +183,7 @@ func TestTick(t *testing.T) {
 		func() config {
 			db := database.New(database.DefaultO)
 			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
-			a := db.AgentInsert(agent.O{
+			a := db.InsertAgent(agent.O{
 				Position:           vector.V{60.0040783686527, 80.40391843262739},
 				TargetVelocity:     vector.V{10, 10},
 				Velocity:           vector.V{10, 10},
@@ -194,7 +194,7 @@ func TestTick(t *testing.T) {
 				MaxAcceleration:    5,
 				Flags:              flags.FSizeSmall,
 			})
-			db.FeatureInsert(feature.O{
+			db.InsertFeature(feature.O{
 				Min: vector.V{70, 20},
 				Max: vector.V{90, 80},
 			})
@@ -221,7 +221,7 @@ func TestTick(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			c.collider.Tick(c.d)
 			for x, want := range c.want {
-				got := c.db.AgentGetOrDie(x).Position()
+				got := c.db.GetAgentOrDie(x).Position()
 				if !vector.Within(got, want) {
 					t.Errorf("Position() = %v, want = %v", got, want)
 				}
@@ -258,7 +258,7 @@ func BenchmarkTick(b *testing.B) {
 			db := database.New(database.DefaultO)
 			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
 			for i := 0; i < c.n; i++ {
-				db.AgentInsert(agent.O{
+				db.InsertAgent(agent.O{
 					Radius:             R,
 					Position:           rv(min, max),
 					TargetVelocity:     rv(-1, 1),
@@ -273,22 +273,22 @@ func BenchmarkTick(b *testing.B) {
 
 			// Add world borders.
 			// Add xmin border.
-			db.FeatureInsert(feature.O{
+			db.InsertFeature(feature.O{
 				Min: vector.V{min - 1, min - 1},
 				Max: vector.V{min, max + 1},
 			})
 			// Add xmax border.
-			db.FeatureInsert(feature.O{
+			db.InsertFeature(feature.O{
 				Min: vector.V{max, min - 1},
 				Max: vector.V{max + 1, max + 1},
 			})
 			// Add ymin border.
-			db.FeatureInsert(feature.O{
+			db.InsertFeature(feature.O{
 				Min: vector.V{min, min - 1},
 				Max: vector.V{max, min},
 			})
 			// Add ymax border.
-			db.FeatureInsert(feature.O{
+			db.InsertFeature(feature.O{
 				Min: vector.V{min, max},
 				Max: vector.V{max, max + 1},
 			})
