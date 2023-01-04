@@ -144,7 +144,6 @@ func ClampHeading(a agent.RO, d time.Duration, v vector.M, h polar.M) {
 		return
 	}
 
-	h.Copy(a.Heading())
 	p := polar.Polar(v.V())
 
 	// We do not need to worry about scaling v by t, as we only care about

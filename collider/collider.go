@@ -52,7 +52,6 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 	pmsch := make(chan pm, 256)
 
 	go func(amsch chan<- am, pmsch chan<- pm) {
-
 		var wg sync.WaitGroup
 
 		wg.Add(c.poolSize)
@@ -61,8 +60,8 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 			for p := range c.db.ProjectileList() {
 				pmsch <- pm{
 					projectile: p,
-					v:          p.Velocity(),
-					h:          polar.Polar(vector.Unit(p.Velocity())),
+					v:          p.TargetVelocity(),
+					h:          polar.Polar(vector.Unit(p.TargetVelocity())),
 				}
 			}
 			close(ch)
@@ -74,10 +73,7 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 				defer wg.Done()
 				for a := range in {
 					v := vector.M{0, 0}
-					// TODO(minkezhang): Investigate what
-					// happens if we change this velocity to
-					// the nearest 8-directional alignment.
-					v.Copy(a.Velocity())
+					v.Copy(a.TargetVelocity())
 
 					aabb := a.AABB()
 					ns := c.db.AgentQuery(aabb, func(b agent.RO) bool { return collider.IsSquishableColliding(a, b) })
@@ -89,7 +85,14 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 
 					// Check for collisions which the agent
 					// cares about, e.g. care about
-					// squishability.
+					// squishability. These functions set
+					// the input vector v to ensure that the
+					// normal components of the velocity is
+					// filtered out for each individual
+					// entity. However, this method is not
+					// always reliable, and a multi-body
+					// collision may flip the velocity back
+					// into the body of an existing entity.
 					for _, n := range ns {
 						kinematics.SetCollisionVelocity(a, n, v)
 					}
@@ -108,12 +111,9 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 						kinematics.ClampCollisionVelocity(a, n, v)
 					}
 
-					kinematics.ClampVelocity(a, v)
-					kinematics.ClampAcceleration(a, v, d)
-
-					// N.B.: The velocity can be further
-					// reduced to zero here due to the
-					// physical limitations of the agent.
+					// N.B.: The velocity can be further reduced to
+					// zero here due to the physical limitations of
+					// the agent.
 					h := polar.M{0, 0}
 					h.Copy(a.Heading())
 					kinematics.ClampHeading(a, d, v, h)
