@@ -44,6 +44,7 @@ func TestTick(t *testing.T) {
 			collider := New(db, O{PoolSize: DefaultO.PoolSize})
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{0, 0},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{1, 1},
 				Velocity:       vector.V{1, 1},
 				Heading:        polar.V{1, math.Pi / 4},
@@ -52,6 +53,7 @@ func TestTick(t *testing.T) {
 			})
 			b := db.InsertAgent(agent.O{
 				Position:       vector.V{0, 1},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{0, -1},
 				Velocity:       vector.V{0, -1},
 				Heading:        polar.V{1, 3 * math.Pi / 2},
@@ -60,6 +62,7 @@ func TestTick(t *testing.T) {
 			})
 			c := db.InsertAgent(agent.O{
 				Position:       vector.V{0, -1},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{0, 1},
 				Velocity:       vector.V{0, 1},
 				Heading:        polar.V{1, math.Pi / 2},
@@ -68,6 +71,7 @@ func TestTick(t *testing.T) {
 			})
 			d := db.InsertAgent(agent.O{
 				Position:       vector.V{1, 0},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{-1, 0},
 				Velocity:       vector.V{-1, 0},
 				Heading:        polar.V{1, math.Pi},
@@ -76,6 +80,7 @@ func TestTick(t *testing.T) {
 			})
 			e := db.InsertAgent(agent.O{
 				Position:       vector.V{-1, 0},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{1, 0},
 				Velocity:       vector.V{1, 0},
 				Heading:        polar.V{1, 2 * math.Pi},
@@ -101,6 +106,7 @@ func TestTick(t *testing.T) {
 			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{1, 1},
 				Velocity:       vector.V{1, 1},
 				MaxVelocity:    math.Sqrt(2),
@@ -123,6 +129,7 @@ func TestTick(t *testing.T) {
 			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{0, 1},
 				Velocity:       vector.V{0, 1},
 				MaxVelocity:    1,
@@ -132,6 +139,7 @@ func TestTick(t *testing.T) {
 			})
 			b := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 12},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{0, -1},
 				Velocity:       vector.V{0, -1},
 				MaxVelocity:    1,
@@ -155,6 +163,7 @@ func TestTick(t *testing.T) {
 			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{0, 1},
 				Velocity:       vector.V{0, 1},
 				MaxVelocity:    1,
@@ -164,6 +173,7 @@ func TestTick(t *testing.T) {
 			})
 			db.InsertProjectile(projectile.O{
 				Position:       vector.V{10, 12},
+				TargetPosition: vector.V{0, 0},
 				TargetVelocity: vector.V{0, -1},
 				Velocity:       vector.V{0, -1},
 				Heading:        polar.V{1, 3 * math.Pi / 2},
@@ -185,6 +195,7 @@ func TestTick(t *testing.T) {
 			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:           vector.V{60.0040783686527, 80.40391843262739},
+				TargetPosition:     vector.V{0, 0},
 				TargetVelocity:     vector.V{10, 10},
 				Velocity:           vector.V{10, 10},
 				Heading:            polar.V{1, 1.550798992821703},
@@ -261,6 +272,7 @@ func BenchmarkTick(b *testing.B) {
 				db.InsertAgent(agent.O{
 					Radius:             R,
 					Position:           rv(min, max),
+					TargetPosition:     vector.V{0, 0},
 					TargetVelocity:     rv(-1, 1),
 					Velocity:           rv(-1, 1),
 					MaxVelocity:        60,
