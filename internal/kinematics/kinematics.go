@@ -124,12 +124,12 @@ func ClampAcceleration(a agent.RO, v vector.M, d time.Duration) {
 	// Only clamp the velocity if the agent is speeding up. We want to
 	// prevent collisions at all costs, so the braking acceleration is
 	// boundless.
-	if mtv < mv {
-		c := mv - mtv
-		if c > t*a.MaxAcceleration() {
-			c = t * a.MaxAcceleration()
+	if mv > 0 {
+		acc := mv - mtv
+		if math.Abs(acc) > t*a.MaxAcceleration() {
+			acc = math.Abs(acc) / acc * t * a.MaxAcceleration()
 		}
-		d := (c + mtv) / mv
+		d := (acc + mtv) / mv
 		v.Scale(d)
 		return
 	}

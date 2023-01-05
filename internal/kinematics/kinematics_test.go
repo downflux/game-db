@@ -154,6 +154,13 @@ func TestClampAcceleration(t *testing.T) {
 			want:            vector.V{2, 0},
 		},
 		{
+			name:            "TooSudden/Slow",
+			v:               vector.V{1, 0},
+			agentVelocity:   vector.V{100, 0},
+			maxAcceleration: 1,
+			want:            vector.V{99, 0},
+		},
+		{
 			name:            "AlwaysStop",
 			v:               vector.V{0, 0},
 			agentVelocity:   vector.V{100, 0},

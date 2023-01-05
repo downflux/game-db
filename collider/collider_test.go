@@ -220,8 +220,8 @@ func TestTick(t *testing.T) {
 				d:        20 * time.Millisecond,
 				want: map[id.ID]vector.V{
 					a.ID(): vector.V{
-						60.01247289297099,
-						80.61166088862839,
+						60.015417498091296,
+						80.68453214094129,
 					},
 				},
 			}
