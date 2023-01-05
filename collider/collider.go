@@ -25,7 +25,6 @@ var (
 )
 
 type O struct {
-	DB       *database.DB
 	PoolSize int
 }
 
@@ -34,12 +33,12 @@ type C struct {
 	poolSize int
 }
 
-func New(o O) *C {
+func New(db *database.DB, o O) *C {
 	if o.PoolSize < 2 {
 		panic(fmt.Sprintf("PoolSize specified %v is smaller than the minimum value of 2", o.PoolSize))
 	}
 	return &C{
-		db:       o.DB,
+		db:       db,
 		poolSize: o.PoolSize,
 	}
 }

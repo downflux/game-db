@@ -41,7 +41,7 @@ func TestTick(t *testing.T) {
 	configs := []config{
 		func() config {
 			db := database.New(database.DefaultO)
-			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
+			collider := New(db, O{PoolSize: DefaultO.PoolSize})
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{0, 0},
 				TargetVelocity: vector.V{1, 1},
@@ -98,7 +98,7 @@ func TestTick(t *testing.T) {
 		}(),
 		func() config {
 			db := database.New(database.DefaultO)
-			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
+			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
 				TargetVelocity: vector.V{1, 1},
@@ -120,7 +120,7 @@ func TestTick(t *testing.T) {
 		}(),
 		func() config {
 			db := database.New(database.DefaultO)
-			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
+			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
 				TargetVelocity: vector.V{0, 1},
@@ -152,7 +152,7 @@ func TestTick(t *testing.T) {
 		}(),
 		func() config {
 			db := database.New(database.DefaultO)
-			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
+			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 10},
 				TargetVelocity: vector.V{0, 1},
@@ -182,7 +182,7 @@ func TestTick(t *testing.T) {
 		}(),
 		func() config {
 			db := database.New(database.DefaultO)
-			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
+			collider := New(db, DefaultO)
 			a := db.InsertAgent(agent.O{
 				Position:           vector.V{60.0040783686527, 80.40391843262739},
 				TargetVelocity:     vector.V{10, 10},
@@ -256,7 +256,7 @@ func BenchmarkTick(b *testing.B) {
 			max := math.Sqrt(area)
 
 			db := database.New(database.DefaultO)
-			collider := New(O{DB: db, PoolSize: DefaultO.PoolSize})
+			collider := New(db, DefaultO)
 			for i := 0; i < c.n; i++ {
 				db.InsertAgent(agent.O{
 					Radius:             R,
