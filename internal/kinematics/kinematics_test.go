@@ -148,11 +148,25 @@ func TestClampAcceleration(t *testing.T) {
 
 	configs := []config{
 		{
+			name:            "NoAction",
+			v:               vector.V{0, 0},
+			agentVelocity:   vector.V{0, 0},
+			maxAcceleration: 1,
+			want:            vector.V{0, 0},
+		},
+		{
 			name:            "TooSudden",
 			v:               vector.V{10, 0},
 			agentVelocity:   vector.V{1, 0},
 			maxAcceleration: 1,
 			want:            vector.V{2, 0},
+		},
+		{
+			name:            "TooSudden/Start",
+			v:               vector.V{10, 0},
+			agentVelocity:   vector.V{0, 0},
+			maxAcceleration: 1,
+			want:            vector.V{1, 0},
 		},
 		{
 			name:            "TooSudden/Slow",
@@ -162,11 +176,11 @@ func TestClampAcceleration(t *testing.T) {
 			want:            vector.V{99, 0},
 		},
 		{
-			name:            "AlwaysStop",
+			name:            "TooSudden/NoStop",
 			v:               vector.V{0, 0},
 			agentVelocity:   vector.V{100, 0},
 			maxAcceleration: 0,
-			want:            vector.V{0, 0},
+			want:            vector.V{100, 0},
 		},
 	}
 

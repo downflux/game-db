@@ -117,25 +117,34 @@ func ClampVelocity(a agent.RO, v vector.M) {
 	}
 }
 
+// ClampAcceleration checks the scalar magnitude of the change in velocity and
+// ensures the next tick velocity does not exceed the max acceleration.
+//
+// N.B.: This does not use the velocity difference vector -- we are not taking
+// into account the angular acceleration component. This allows us to decompose
+// the maximum acceleration into angular (i.e. ClampHeading) and scalar
+// (i.e. ClampAcceleration) components, which allows for easier agent config
+// generation.
 func ClampAcceleration(a agent.RO, v vector.M, d time.Duration) {
 	t := float64(d) / float64(time.Second)
-	mtv := vector.Magnitude(a.Velocity())
-	mv := vector.Magnitude(v.V())
-	// Only clamp the velocity if the agent is speeding up. We want to
-	// prevent collisions at all costs, so the braking acceleration is
-	// boundless.
-	//
-	// TODO(minkezhang): Since we have moved ClampCollisionVelocity to the
-	// very end of the chain, we can attempt braking behavior here.
-	// Implement.
-	if mv > 0 {
-		acc := mv - mtv
-		if math.Abs(acc) > t*a.MaxAcceleration() {
-			acc = math.Abs(acc) / acc * t * a.MaxAcceleration()
+
+	mv := vector.Magnitude(a.Velocity())
+	mtarget := vector.Magnitude(v.V())
+
+	dv := mv - mtarget
+	if math.Abs(dv) > t*a.MaxAcceleration() {
+		dv = math.Copysign(t*a.MaxAcceleration(), dv)
+	}
+
+	// Interpret the new velocity as a braking action.
+	if epsilon.Absolute(1e-5).Within(mtarget, 0) {
+		if !epsilon.Absolute(1e-5).Within(mv, 0) {
+			v.Copy(a.Velocity())
+			v.Scale((mv - dv) / mv)
 		}
-		d := (acc + mtv) / mv
-		v.Scale(d)
-		return
+	} else {
+		v.Unit()
+		v.Scale(mv - dv)
 	}
 }
 
