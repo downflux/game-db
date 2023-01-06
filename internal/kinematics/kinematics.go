@@ -143,8 +143,7 @@ func ClampAcceleration(a agent.RO, v vector.M, d time.Duration) {
 			v.Scale((mv - dv) / mv)
 		}
 	} else {
-		v.Unit()
-		v.Scale(mv - dv)
+		v.Scale((mv - dv) / mtarget)
 	}
 }
 
