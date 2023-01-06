@@ -11,6 +11,7 @@ import (
 	"github.com/downflux/go-database/flags"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
+	"github.com/downflux/go-geometry/epsilon"
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
 	magent "github.com/downflux/go-database/agent/mock"
@@ -511,7 +512,7 @@ func TestClampHeading(t *testing.T) {
 			v:     vector.V{10, 0},
 			h:     polar.V{1, math.Pi},
 			omega: math.Pi / 2,
-			wantV: vector.V{0, 0},
+			wantV: vector.V{0, 10},
 			wantH: polar.V{1, math.Pi / 2},
 		},
 	}
@@ -532,10 +533,10 @@ func TestClampHeading(t *testing.T) {
 			})
 
 			ClampHeading(a, time.Second, v, h)
-			if !vector.Within(v.V(), c.wantV) {
+			if !vector.WithinEpsilon(v.V(), c.wantV, epsilon.Absolute(1e-5)) {
 				t.Errorf("v = %v, want = %v", v, c.wantV)
 			}
-			if !polar.Within(h.V(), c.wantH) {
+			if !polar.WithinEpsilon(h.V(), c.wantH, epsilon.Absolute(1e-5)) {
 				t.Errorf("h = %v, want = %v", h, c.wantH)
 			}
 		})

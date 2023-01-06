@@ -144,7 +144,7 @@ func ClampHeading(a agent.RO, d time.Duration, v vector.M, h polar.M) {
 		return
 	}
 
-	p := polar.Polar(v.V())
+	p := polar.Polar(v.V()).M()
 
 	// We do not need to worry about scaling v by t, as we only care about
 	// the angular difference between v and the heading.
@@ -158,9 +158,10 @@ func ClampHeading(a agent.RO, d time.Duration, v vector.M, h polar.M) {
 	// See https://math.stackexchange.com/a/2898118.
 	dtheta := math.Mod(ptheta-htheta+3*math.Pi, 2*math.Pi) - math.Pi
 	if math.Abs(dtheta) > omega {
-		h.SetTheta(htheta + (dtheta/math.Abs(dtheta))*omega)
-		v.SetX(0)
-		v.SetY(0)
+		dtheta = dtheta / math.Abs(dtheta) * omega
+		h.SetTheta(htheta + dtheta)
+		p.SetTheta(htheta + dtheta)
+		v.Copy(polar.Cartesian(p.V()))
 	} else {
 		h.SetTheta(htheta + dtheta)
 	}

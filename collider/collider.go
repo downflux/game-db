@@ -104,8 +104,19 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 						kinematics.SetCollisionVelocity(a, n, v)
 					}
 
+					kinematics.ClampVelocity(a, v)
+					kinematics.ClampAcceleration(a, v, d)
+
+					// N.B.: The velocity can be further reduced to
+					// zero here due to the physical limitations of
+					// the agent.
+					h := polar.M{0, 0}
+					h.Copy(a.Heading())
+					kinematics.ClampHeading(a, d, v, h)
+
 					// Second pass ensures agent is not
-					// colliding with any static features.
+					// colliding with any static features
+					// after the velocity manipulations.
 					for _, f := range fs {
 						kinematics.ClampFeatureCollisionVelocity(a, f, v)
 					}
@@ -117,16 +128,6 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 					for _, n := range ns {
 						kinematics.ClampCollisionVelocity(a, n, v)
 					}
-
-					kinematics.ClampVelocity(a, v)
-					kinematics.ClampAcceleration(a, v, d)
-
-					// N.B.: The velocity can be further reduced to
-					// zero here due to the physical limitations of
-					// the agent.
-					h := polar.M{0, 0}
-					h.Copy(a.Heading())
-					kinematics.ClampHeading(a, d, v, h)
 
 					out <- am{
 						agent: a,
