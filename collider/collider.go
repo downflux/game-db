@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/downflux/go-collider/internal/collider"
 	"github.com/downflux/go-collider/internal/kinematics"
 	"github.com/downflux/go-database/agent"
 	"github.com/downflux/go-database/database"
 	"github.com/downflux/go-database/feature"
+	"github.com/downflux/go-database/filters"
 	"github.com/downflux/go-database/projectile"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
@@ -83,8 +83,12 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 					v.Copy(a.TargetVelocity())
 
 					aabb := a.AABB()
-					ns := c.db.QueryAgents(aabb, func(b agent.RO) bool { return collider.IsSquishableColliding(a, b) })
-					fs := c.db.QueryFeatures(aabb, func(f feature.RO) bool { return collider.IsCollidingFeature(a, f) })
+					ns := c.db.QueryAgents(aabb, func(b agent.RO) bool {
+						return filters.AgentIsCollidingNotSquishable(a, b)
+					})
+					fs := c.db.QueryFeatures(aabb, func(f feature.RO) bool {
+						return filters.AgentIsCollidingWithFeature(a, f)
+					})
 
 					for _, f := range fs {
 						kinematics.SetFeatureCollisionVelocity(a, f, v)

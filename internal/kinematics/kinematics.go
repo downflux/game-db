@@ -10,7 +10,7 @@ import (
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
 
-	chr "github.com/downflux/go-collider/internal/geometry/hyperrectangle"
+	dhr "github.com/downflux/go-database/geometry/hyperrectangle"
 )
 
 const (
@@ -44,7 +44,7 @@ func ClampCollisionVelocity(a agent.RO, b agent.RO, v vector.M) {
 }
 
 func ClampFeatureCollisionVelocity(a agent.RO, f feature.RO, v vector.M) {
-	n := chr.N(f.AABB(), a.Position()).M()
+	n := dhr.Normal(f.AABB(), a.Position()).M()
 	n.Scale(-1)
 	if c := vector.Dot(n.V(), v.V()); c > tolerance {
 		v.SetX(0)
@@ -103,7 +103,7 @@ func SetCollisionVelocity(a agent.RO, b agent.RO, v vector.M) {
 }
 
 func SetFeatureCollisionVelocity(a agent.RO, f feature.RO, v vector.M) {
-	n := chr.N(f.AABB(), a.Position()).M()
+	n := dhr.Normal(f.AABB(), a.Position()).M()
 	n.Scale(-1)
 	if c := vector.Dot(n.V(), v.V()); c > tolerance {
 		n.Scale(c)
