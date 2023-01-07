@@ -26,7 +26,6 @@ var (
 
 type O struct {
 	PoolSize int
-	Debug    bool
 }
 
 type C struct {
