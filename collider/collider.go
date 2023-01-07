@@ -2,7 +2,6 @@ package collider
 
 import (
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -22,7 +21,6 @@ var (
 	// is dependent on a variety of factors, e.g. CPU count.
 	DefaultO O = O{
 		PoolSize: 24,
-		Debug:    false,
 	}
 )
 
@@ -34,10 +32,6 @@ type O struct {
 type C struct {
 	db       *database.DB
 	poolSize int
-
-	// TODO(minkezhang): Remove debugging opt.
-	debug bool
-	frame int
 }
 
 func New(db *database.DB, o O) *C {
@@ -46,7 +40,6 @@ func New(db *database.DB, o O) *C {
 	}
 	return &C{
 		db:       db,
-		debug:    o.Debug,
 		poolSize: o.PoolSize,
 	}
 }
@@ -160,9 +153,6 @@ func (c *C) generate(d time.Duration) ([]am, []pm) {
 // Tick advances the world by one tick. During this execution, agents must not
 // be modified by the user.
 func (c *C) Tick(d time.Duration) {
-	if c.debug {
-		log.Printf("collider frame f = %v\n", c.frame)
-	}
 	t := float64(d) / float64(time.Second)
 
 	ams, pms := c.generate(d)
@@ -177,7 +167,6 @@ func (c *C) Tick(d time.Duration) {
 		c.db.SetProjectileHeading(r.projectile.ID(), r.h)
 		c.db.SetProjectileVelocity(r.projectile.ID(), r.v)
 	}
-	c.frame++
 }
 
 type pm struct {
