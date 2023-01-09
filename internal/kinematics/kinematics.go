@@ -44,9 +44,9 @@ func ClampCollisionVelocity(a agent.RO, b agent.RO, v vector.M) {
 }
 
 func ClampFeatureCollisionVelocity(a agent.RO, f feature.RO, v vector.M) {
-	n := dhr.Normal(f.AABB(), a.Position()).M()
-	n.Scale(-1)
-	if c := vector.Dot(n.V(), v.V()); c > tolerance {
+	_, n := dhr.Normal(f.AABB(), a.Position())
+	n.M().Scale(-1)
+	if c := vector.Dot(n, v.V()); c > tolerance {
 		v.SetX(0)
 		v.SetY(0)
 	}
@@ -103,11 +103,11 @@ func SetCollisionVelocity(a agent.RO, b agent.RO, v vector.M) {
 }
 
 func SetFeatureCollisionVelocity(a agent.RO, f feature.RO, v vector.M) {
-	n := dhr.Normal(f.AABB(), a.Position()).M()
-	n.Scale(-1)
-	if c := vector.Dot(n.V(), v.V()); c > tolerance {
-		n.Scale(c)
-		v.Sub(n.V())
+	_, n := dhr.Normal(f.AABB(), a.Position())
+	n.M().Scale(-1)
+	if c := vector.Dot(n, v.V()); c > tolerance {
+		n.M().Scale(c)
+		v.Sub(n)
 	}
 }
 
