@@ -49,6 +49,7 @@ func TestTick(t *testing.T) {
 				Velocity:       vector.V{1, 1},
 				Heading:        polar.V{1, math.Pi / 4},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			b := db.InsertAgent(agent.O{
@@ -58,6 +59,7 @@ func TestTick(t *testing.T) {
 				Velocity:       vector.V{0, -1},
 				Heading:        polar.V{1, 3 * math.Pi / 2},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			c := db.InsertAgent(agent.O{
@@ -67,6 +69,7 @@ func TestTick(t *testing.T) {
 				Velocity:       vector.V{0, 1},
 				Heading:        polar.V{1, math.Pi / 2},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			d := db.InsertAgent(agent.O{
@@ -76,6 +79,7 @@ func TestTick(t *testing.T) {
 				Velocity:       vector.V{-1, 0},
 				Heading:        polar.V{1, math.Pi},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			e := db.InsertAgent(agent.O{
@@ -85,6 +89,7 @@ func TestTick(t *testing.T) {
 				Velocity:       vector.V{1, 0},
 				Heading:        polar.V{1, 2 * math.Pi},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			return config{
@@ -112,6 +117,7 @@ func TestTick(t *testing.T) {
 				MaxVelocity:    math.Sqrt(2),
 				Heading:        polar.V{1, math.Pi / 4},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			return config{
@@ -135,6 +141,7 @@ func TestTick(t *testing.T) {
 				MaxVelocity:    1,
 				Heading:        polar.V{1, math.Pi / 2},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			b := db.InsertAgent(agent.O{
@@ -145,6 +152,7 @@ func TestTick(t *testing.T) {
 				MaxVelocity:    1,
 				Heading:        polar.V{1, 3 * math.Pi / 2},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			return config{
@@ -169,6 +177,7 @@ func TestTick(t *testing.T) {
 				MaxVelocity:    1,
 				Heading:        polar.V{1, math.Pi / 2},
 				Radius:         1,
+				Mass:           1,
 				Flags:          flags.FSizeSmall,
 			})
 			db.InsertProjectile(projectile.O{
@@ -200,6 +209,7 @@ func TestTick(t *testing.T) {
 				Velocity:           vector.V{10, 10},
 				Heading:            polar.V{1, 1.550798992821703},
 				Radius:             10,
+				Mass:               1,
 				MaxVelocity:        100,
 				MaxAngularVelocity: math.Pi / 2,
 				MaxAcceleration:    5,
@@ -271,6 +281,7 @@ func BenchmarkTick(b *testing.B) {
 			for i := 0; i < c.n; i++ {
 				db.InsertAgent(agent.O{
 					Radius:             R,
+					Mass:               1,
 					Position:           rv(min, max),
 					TargetPosition:     vector.V{0, 0},
 					TargetVelocity:     rv(-1, 1),
