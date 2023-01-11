@@ -8,7 +8,7 @@ import (
 
 	"github.com/downflux/go-database/agent"
 	"github.com/downflux/go-database/feature"
-	"github.com/downflux/go-database/flags"
+	"github.com/downflux/go-database/flags/size"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
@@ -70,7 +70,7 @@ func TestClampFeatureCollisionVelocity(t *testing.T) {
 				TargetVelocity: vector.V{0, 0},
 				Heading:        polar.V{1, 0},
 				Position:       c.p,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			f := mfeature.New(0, feature.O{
 				Min: vector.V(c.aabb.Min()),
@@ -120,13 +120,13 @@ func TestClampCollisionVelocity(t *testing.T) {
 				TargetVelocity: vector.V{0, 0},
 				Heading:        polar.V{1, 0},
 				Position:       c.p,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			b := magent.New(2, agent.O{
 				TargetVelocity: vector.V{0, 0},
 				Heading:        polar.V{1, 0},
 				Position:       c.q,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			ClampCollisionVelocity(a, b, v)
 
@@ -192,7 +192,7 @@ func TestClampAcceleration(t *testing.T) {
 
 				Velocity:        c.agentVelocity,
 				MaxAcceleration: c.maxAcceleration,
-				Flags:           flags.FSizeSmall,
+				Size:            size.FSmall,
 			})
 
 			ClampAcceleration(a, c.v.M(), time.Second)
@@ -235,7 +235,7 @@ func TestClampVelocity(t *testing.T) {
 				TargetVelocity: vector.V{0, 0},
 
 				MaxVelocity: c.maxVelocity,
-				Flags:       flags.FSizeSmall,
+				Size:        size.FSmall,
 			})
 
 			ClampVelocity(a, c.v.M())
@@ -368,7 +368,7 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 				Heading:        polar.V{1, 0},
 				TargetVelocity: vector.V{0, 0},
 				Position:       c.p,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			for _, aabb := range c.aabbs {
 				f := mfeature.New(0, feature.O{
@@ -475,14 +475,14 @@ func TestSetCollisionVelocity(t *testing.T) {
 				TargetVelocity: vector.V{0, 0},
 				Heading:        polar.V{1, 0},
 				Position:       c.p,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			for _, q := range c.qs {
 				b := magent.New(2, agent.O{
 					TargetVelocity: vector.V{0, 0},
 					Heading:        polar.V{1, 0},
 					Position:       q,
-					Flags:          flags.FSizeSmall,
+					Size:           size.FSmall,
 				})
 				SetCollisionVelocity(a, b, v)
 			}
@@ -543,7 +543,7 @@ func TestClampHeading(t *testing.T) {
 				Position:           vector.V{0, 0},
 				Heading:            c.h,
 				MaxAngularVelocity: c.omega,
-				Flags:              flags.FSizeSmall,
+				Size:               size.FSmall,
 			})
 
 			ClampHeading(a, time.Second, v, h)
