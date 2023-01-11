@@ -11,7 +11,7 @@ import (
 	"github.com/downflux/go-database/agent"
 	"github.com/downflux/go-database/database"
 	"github.com/downflux/go-database/feature"
-	"github.com/downflux/go-database/flags"
+	"github.com/downflux/go-database/flags/size"
 	"github.com/downflux/go-database/projectile"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
@@ -50,7 +50,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, math.Pi / 4},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			b := db.InsertAgent(agent.O{
 				Position:       vector.V{0, 1},
@@ -60,7 +60,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, 3 * math.Pi / 2},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			c := db.InsertAgent(agent.O{
 				Position:       vector.V{0, -1},
@@ -70,7 +70,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, math.Pi / 2},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			d := db.InsertAgent(agent.O{
 				Position:       vector.V{1, 0},
@@ -80,7 +80,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, math.Pi},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			e := db.InsertAgent(agent.O{
 				Position:       vector.V{-1, 0},
@@ -90,7 +90,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, 2 * math.Pi},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			return config{
 				name:     "Stuck",
@@ -118,7 +118,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, math.Pi / 4},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			return config{
 				name:     "Trivial",
@@ -142,7 +142,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, math.Pi / 2},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			b := db.InsertAgent(agent.O{
 				Position:       vector.V{10, 12},
@@ -153,7 +153,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, 3 * math.Pi / 2},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			return config{
 				name:     "Collision",
@@ -178,7 +178,7 @@ func TestTick(t *testing.T) {
 				Heading:        polar.V{1, math.Pi / 2},
 				Radius:         1,
 				Mass:           1,
-				Flags:          flags.FSizeSmall,
+				Size:           size.FSmall,
 			})
 			db.InsertProjectile(projectile.O{
 				Position:       vector.V{10, 12},
@@ -187,7 +187,6 @@ func TestTick(t *testing.T) {
 				Velocity:       vector.V{0, -1},
 				Heading:        polar.V{1, 3 * math.Pi / 2},
 				Radius:         1,
-				Flags:          flags.FSizeProjectile,
 			})
 			return config{
 				name:     "Collision/IgnoreProjectile",
@@ -213,7 +212,7 @@ func TestTick(t *testing.T) {
 				MaxVelocity:        100,
 				MaxAngularVelocity: math.Pi / 2,
 				MaxAcceleration:    5,
-				Flags:              flags.FSizeSmall,
+				Size:               size.FSmall,
 			})
 			db.InsertFeature(feature.O{
 				Min: vector.V{70, 20},
@@ -290,7 +289,7 @@ func BenchmarkTick(b *testing.B) {
 					MaxAcceleration:    10,
 					MaxAngularVelocity: math.Pi / 4,
 					Heading:            polar.V{1, 0},
-					Flags:              flags.FSizeSmall,
+					Size:               size.FSmall,
 				})
 			}
 
