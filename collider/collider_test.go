@@ -259,7 +259,7 @@ func BenchmarkTick(b *testing.B) {
 
 	configs := []config{}
 	for _, n := range []int{1e3, 1e4, 1e5} {
-		for _, coverage := range []float64{0.01, 0.05, 0.1} {
+		for _, coverage := range []float64{0.01, 0.05, 0.1, 0.5} {
 			configs = append(configs, config{
 				name:     fmt.Sprintf("N=%v/ρ=%v", n, coverage),
 				n:        n,
