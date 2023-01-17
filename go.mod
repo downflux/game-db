@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/downflux/go-bvh v1.0.0
-	github.com/downflux/go-database v0.3.12
+	github.com/downflux/go-database v0.4.0
 	github.com/downflux/go-geometry v0.15.4
 )
 
