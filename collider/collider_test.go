@@ -13,6 +13,7 @@ import (
 	"github.com/downflux/go-database/feature"
 	"github.com/downflux/go-database/flags/size"
 	"github.com/downflux/go-database/projectile"
+	"github.com/downflux/go-geometry/2d/hyperrectangle"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 )
@@ -215,8 +216,7 @@ func TestTick(t *testing.T) {
 				Size:               size.FSmall,
 			})
 			db.InsertFeature(feature.O{
-				Min: vector.V{70, 20},
-				Max: vector.V{90, 80},
+				AABB: *hyperrectangle.New(vector.V{70, 20}, vector.V{90, 80}),
 			})
 			// Ensure agent can still move when right at the corner.
 			// This case exposes a floating point error when
@@ -296,23 +296,19 @@ func BenchmarkTick(b *testing.B) {
 			// Add world borders.
 			// Add xmin border.
 			db.InsertFeature(feature.O{
-				Min: vector.V{min - 1, min - 1},
-				Max: vector.V{min, max + 1},
+				AABB: *hyperrectangle.New(vector.V{min - 1, min - 1}, vector.V{min, max + 1}),
 			})
 			// Add xmax border.
 			db.InsertFeature(feature.O{
-				Min: vector.V{max, min - 1},
-				Max: vector.V{max + 1, max + 1},
+				AABB: *hyperrectangle.New(vector.V{max, min - 1}, vector.V{max + 1, max + 1}),
 			})
 			// Add ymin border.
 			db.InsertFeature(feature.O{
-				Min: vector.V{min, min - 1},
-				Max: vector.V{max, min},
+				AABB: *hyperrectangle.New(vector.V{min, min - 1}, vector.V{max, min}),
 			})
 			// Add ymax border.
 			db.InsertFeature(feature.O{
-				Min: vector.V{min, max},
-				Max: vector.V{max, max + 1},
+				AABB: *hyperrectangle.New(vector.V{min, max}, vector.V{max, max + 1}),
 			})
 
 			b.StartTimer()

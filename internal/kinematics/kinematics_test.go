@@ -8,14 +8,13 @@ import (
 
 	"github.com/downflux/go-database/agent"
 	"github.com/downflux/go-database/feature"
+	"github.com/downflux/go-geometry/2d/hyperrectangle"
 	"github.com/downflux/go-geometry/2d/vector"
 	"github.com/downflux/go-geometry/2d/vector/polar"
 	"github.com/downflux/go-geometry/epsilon"
-	"github.com/downflux/go-geometry/nd/hyperrectangle"
 
 	magent "github.com/downflux/go-database/agent/mock"
 	mfeature "github.com/downflux/go-database/feature/mock"
-	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
 func TestClampFeatureCollisionVelocity(t *testing.T) {
@@ -32,8 +31,8 @@ func TestClampFeatureCollisionVelocity(t *testing.T) {
 			name: "Simple",
 			p:    vector.V{0, 5},
 			aabb: *hyperrectangle.New(
-				vnd.V{1, 0},
-				vnd.V{2, 10},
+				vector.V{1, 0},
+				vector.V{2, 10},
 			),
 			v:    vector.V{1, 0},
 			want: vector.V{0, 0},
@@ -42,8 +41,8 @@ func TestClampFeatureCollisionVelocity(t *testing.T) {
 			name: "Simple/NoCollision/Perpendicular",
 			p:    vector.V{0, 5},
 			aabb: *hyperrectangle.New(
-				vnd.V{1, 0},
-				vnd.V{2, 10},
+				vector.V{1, 0},
+				vector.V{2, 10},
 			),
 			v:    vector.V{0, 1},
 			want: vector.V{0, 1},
@@ -52,8 +51,8 @@ func TestClampFeatureCollisionVelocity(t *testing.T) {
 			name: "Corner",
 			p:    vector.V{0, 0.9},
 			aabb: *hyperrectangle.New(
-				vnd.V{1, 0},
-				vnd.V{2, 10},
+				vector.V{1, 0},
+				vector.V{2, 10},
 			),
 			v:    vector.V{1, -1},
 			want: vector.V{0, 0},
@@ -71,8 +70,7 @@ func TestClampFeatureCollisionVelocity(t *testing.T) {
 				Position:       c.p,
 			})
 			f := mfeature.New(0, feature.O{
-				Min: vector.V(c.aabb.Min()),
-				Max: vector.V(c.aabb.Max()),
+				AABB: c.aabb,
 			})
 			ClampFeatureCollisionVelocity(a, f, v)
 
@@ -258,8 +256,8 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			p:    vector.V{1, 1},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
-					vnd.V{2, 0},
-					vnd.V{10, 10},
+					vector.V{2, 0},
+					vector.V{10, 10},
 				),
 			},
 			v:    vector.V{1, 1},
@@ -270,8 +268,8 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			p:    vector.V{11, 1},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
-					vnd.V{2, 0},
-					vnd.V{10, 10},
+					vector.V{2, 0},
+					vector.V{10, 10},
 				),
 			},
 			v:    vector.V{-1, 1},
@@ -282,8 +280,8 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			p:    vector.V{4, -1},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
-					vnd.V{2, 0},
-					vnd.V{10, 10},
+					vector.V{2, 0},
+					vector.V{10, 10},
 				),
 			},
 			v:    vector.V{1, 1},
@@ -294,8 +292,8 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			p:    vector.V{4, 11},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
-					vnd.V{2, 0},
-					vnd.V{10, 10},
+					vector.V{2, 0},
+					vector.V{10, 10},
 				),
 			},
 			v:    vector.V{1, -1},
@@ -306,8 +304,8 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			p:    vector.V{0, 0.9},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
-					vnd.V{1, 0},
-					vnd.V{2, 10},
+					vector.V{1, 0},
+					vector.V{2, 10},
 				),
 			},
 			v:    vector.V{1, -1},
@@ -318,8 +316,8 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			p:    vector.V{0, -0.1},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
-					vnd.V{1, 0},
-					vnd.V{2, 10},
+					vector.V{1, 0},
+					vector.V{2, 10},
 				),
 			},
 			v: vector.V{1, -1},
@@ -340,8 +338,8 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			},
 			aabbs: []hyperrectangle.R{
 				*hyperrectangle.New(
-					vnd.V{70, 20},
-					vnd.V{90, 80},
+					vector.V{70, 20},
+					vector.V{90, 80},
 				),
 			},
 			v: vector.V{10, 10},
@@ -365,8 +363,7 @@ func TestSetFeatureCollisionVelocity(t *testing.T) {
 			})
 			for _, aabb := range c.aabbs {
 				f := mfeature.New(0, feature.O{
-					Min: vector.V(aabb.Min()),
-					Max: vector.V(aabb.Max()),
+					AABB: aabb,
 				})
 
 				SetFeatureCollisionVelocity(a, f, v)
