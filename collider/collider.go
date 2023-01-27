@@ -21,7 +21,6 @@ var (
 	// is dependent on a variety of factors, e.g. CPU count.
 	DefaultO O = O{
 		PoolSize: 24,
-		BVH:      bvh.O{},
 	}
 )
 
@@ -30,13 +29,7 @@ type O struct {
 }
 
 type C struct {
-	agents      map[id.ID]interfaces.AgentCollider
-	features    map[id.ID]interfaces.FeatureCollider
-	projectiles map[id.ID]interfaces.ProjectileCollider
-
-	agentsBVH   *bvh.BVH
-	featuresBVH *bvh.BVH
-
+	db       *database.DB
 	poolSize int
 }
 
