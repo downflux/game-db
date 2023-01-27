@@ -1,5 +1,7 @@
 github.com/downflux/go-bvh v1.0.0 h1:k5rSxBGEeuhWaW8JrxL5KF1f3fA9jaXoK1/zJLV9DK4=
 github.com/downflux/go-bvh v1.0.0/go.mod h1:A4IdDdYkX7zy0STS7KvNMGgQTpMOT3/aSJh8MkM4GLc=
+github.com/downflux/go-bvh v1.0.1 h1:/LP28/4OEZGQDmvhfkbzzDGi9/pxRoIdQ1ahJvRgA4c=
+github.com/downflux/go-bvh v1.0.1/go.mod h1:A4IdDdYkX7zy0STS7KvNMGgQTpMOT3/aSJh8MkM4GLc=
 github.com/downflux/go-database v0.3.12 h1:coclMrXPFfvaZXERscdz2jl2arna5xOzIQGZhppFKmk=
 github.com/downflux/go-database v0.3.12/go.mod h1:GgparhC7kkqx5VPbyFjE8/zA7o2F/E8P8SR/GwXNs+s=
 github.com/downflux/go-database v0.4.0 h1:hQEW46uotxsagUFToqySFSLuAv+KkRIDF/SonQcoM4A=
